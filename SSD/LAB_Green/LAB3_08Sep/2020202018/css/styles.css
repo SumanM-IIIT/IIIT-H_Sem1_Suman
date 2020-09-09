@@ -1,0 +1,14 @@
+body {
+	background: url('../images/background_image2.jpg');
+	margin: 3% 5% 5% 10%;
+}
+a {
+	text-decoration: none;
+	color: indigo;
+}
+.div2 {
+	padding: 1%;
+	margin: 2%;
+	background-color: #d6eef8;				
+	border-radius: 10%;
+}
