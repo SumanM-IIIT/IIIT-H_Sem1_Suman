@@ -517,7 +517,8 @@ BigInt minimize_big(BigInt large, BigInt small) {
 	BigInt tmp(mult(i, small.get_string()));
 	while(large > tmp) {
 		res = tmp.get_string();
-		i = incr_one(i);
+		i = mult(i, j);
+		j = incr_one(j);
 		//j = findSum(j, to_string(1));
 		//cout << "Inside min_big() res: " << res << ", i: " << i << endl;
 		tmp.set_string(mult(i, small.get_string()));
@@ -532,11 +533,13 @@ BigInt gcd_act(BigInt a, BigInt b) {
 	string res;
 	//cout << "Inside gcd_act(), a: " << a.get_string() << ", b: " << b.get_string() << endl;
 	while(a.get_string().compare(b.get_string()) != 0) {
-	     while(a > b) {
-	         a = a - b;
+	     if(a > b) {
+	         //a = a - b;
+	         a = minimize_big(a, b);
 	     }
-	     while(b > a) {
-	         b = b - a;
+	     if(b > a) {
+	         //b = b - a;
+	         b = minimize_big(b, a);
 	     }
 	}
 	return a;
@@ -577,8 +580,7 @@ ull gcd_one_big(string big, ull b) {
 	return gcd_int(b, mini);
 }
 
-int main() {
-
+int main() {	
 	long long q;
 	int n, fact_inp;
 	long long exp_inp;
