@@ -171,6 +171,67 @@ int main() {
 	d1.display();
 	cout << d1.empty();
 //	cout << d1[0];*/
+	ll q;
+	int a, x;
+	ll n;
+	cin >> q;
 	
+	while(q--) {
+		cin >> a;
+		if(a == 1) {
+			cin >> x;
+			d1.push_front(x);
+		}
+		else if(a == 2) {
+			d1.pop_front();
+		}
+		else if(a == 3) {
+			cin >> x;
+			d1.push_back(x);
+		}
+		else if(a == 4) {
+			d1.pop_front();
+		} 
+		else if(a == 5) {
+			Deque<int> d1;
+		} 
+		else if(a == 6) {
+			cin >> n >> x;
+			Deque<int> d1(n, x);
+		} 
+		else if(a == 7) {
+			cout << "Front element: " << d1.front() << endl;	
+		} 
+		else if(a == 8) {
+			cout << "Back element: " << d1.back() << endl; 
+		} 
+		else if(a == 9) {
+			if(d1.empty())
+				cout << "Deque is EMPTY." << endl;
+			else
+				cout << "Deque is NON-EMPTY." << endl;
+		} 
+		else if(a == 10) {
+			cout << "Current size of the Deque: " << d1.size() << endl;	
+		} 
+		else if(a == 11) {
+			cin >> n >> x;
+			d1.resize(n, x);
+		} 
+		else if(a == 12) {
+			d1.clear();
+		} 
+		else if(a == 13) {
+			cin >> n;
+			cout << d1[n] << endl;
+		} 
+		else if(a == 14) {
+			d1.display();
+		}  
+		else {
+			cout << a << " is a Wrong Query Number. Exiting !!!" << endl;
+			exit(1);
+		}
+	}
 	return 0;
 }
