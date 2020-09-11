@@ -1,6 +1,6 @@
 #!/bin/bash
 clear
-read -p "Enter a value: " str
+read str
 str=$(echo $str | tr '[:upper:]' '[:lower:]')
 len=$(echo $str | wc -c)
 len=$(expr $len - 1)
