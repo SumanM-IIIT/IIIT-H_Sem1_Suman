@@ -14,7 +14,7 @@ while test $x -le $y
 		if [ $p != $q ]
 		then
 			echo "No"
-			exit
+			exit 0
 		fi
 		x=$(expr $x + 1)
 		len=$(expr $len - 1)
