@@ -2,6 +2,11 @@
 clear
 read number
 len=${#number}
+if ! [[ $number =~ ^([[:space:]]*[0-9]+[[:space:]]*)+$ ]]
+then
+	echo "Invalid"
+	exit 0
+fi
 k=0
 sum=0
 declare -a arr

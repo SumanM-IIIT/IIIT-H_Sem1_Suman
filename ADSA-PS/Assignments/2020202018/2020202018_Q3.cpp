@@ -171,6 +171,8 @@ int main() {
 	d1.display();
 	cout << d1.empty();
 //	cout << d1[0];*/
+	Deque<int> d1;
+
 	ll q;
 	int a, x;
 	ll n;
@@ -232,6 +234,7 @@ int main() {
 			cout << a << " is a Wrong Query Number. Exiting !!!" << endl;
 			exit(1);
 		}
+		d1.display();
 	}
 	return 0;
 }

@@ -1,10 +1,10 @@
 #!/bin/bash
 clear
-ps ax -o pid | cut -d$'\n' -f2- > pid.txt
+ps a -o pid | cut -d$'\n' -f2- | sort > pid.txt
 count=$(cat pid.txt | wc -w)
 
-read -p "Enter a number: " N
-if(($N>$count))
+read N
+if [[ $N -gt $count ]]
 then
 	N=$count
 fi
