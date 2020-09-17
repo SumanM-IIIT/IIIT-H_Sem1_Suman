@@ -1,8 +1,8 @@
 # SSD ASSIGNMENT - 1
 
 ### Q1:
-  - Used **touch** command to create multiple files at once.
-  - Initially used **rename** command, but later switched **find** with **mv** to rename multiple files at once.
+- Used **touch** command to create multiple files at once.
+- Used **find** alongwith its options like **-depth** to select the current directory's contents, **-name** for matching the file extension pattern and **-exec** to execute a command to take all the files of matched pattern at once and move i.e. rename them to according to the need using **mv**.
 - Used **ls -laSr** to list the content in long list format sorted in ascending order where; **'-l'** for long list format, **'-a'** for all files, **'-S'** for sort by file size (largest first) and **'-r'** for reverse sort (i.e. increasing order of file size).
 - Used **find** command with **-maxdepth 2** to display full paths of each files/folders upto two levels of depth.
 - Used **readlink -f** to display the full path.
