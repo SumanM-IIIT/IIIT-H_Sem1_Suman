@@ -2,7 +2,7 @@
 
 ### Q1:
   - Used **touch** command to create multiple files at once.
-  - Used **find** with **mv** to rename multiple files at once.
+  - Initially used **rename** command, but later switched **find** with **mv** to rename multiple files at once.
 - Used **ls -laSr** to list the content in long list format sorted in ascending order where; **'-l'** for long list format, **'-a'** for all files, **'-S'** for sort by file size (largest first) and **'-r'** for reverse sort (i.e. increasing order of file size).
 - Used **find** command with **-maxdepth 2** to display full paths of each files/folders upto two levels of depth.
 - Used **readlink -f** to display the full path.
