@@ -1,0 +1,36 @@
+### Get the IDs of html tags.
+### In jquery.js, write:
+	
+	$("#display").text($("#content").text());
+	
+	$("#submit-btn").click(
+		function() {
+		$("#display").text($("#content").text());
+	);
+	
+	$("#submit-btn").click(function() {
+		$("#display").text($("#name_input").val());
+	});
+	
+	$("#invalid").hide();
+	var pincodeBool = false;
+	$("#pin_input").on("input", function() {
+		if($(this).val().length != 6) {
+			$(this).css("color", "red");
+			$("#invalid").show();
+			pincodeBool = false;
+		}
+		else {
+			$(this).css("color", "black");
+			$("#invalid").hide();
+			pincodeBool = true;
+		}	
+	});
+	
+	
+### EVENTS must be INSIDE function() {} ###
+.val() captures the value of an input from a form.
+.text() captures the text in a HTML tag.
+.innerHTML() captures HTML in a HTML tag.
+
+https://glitch.com/~mahogany-laser-elm
