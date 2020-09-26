@@ -1,21 +1,21 @@
+<!DOCTYPE html>
 <html>
   <head>
+    <title>SSD HW A-Frame</title>
     <script src="https://aframe.io/releases/1.0.4/aframe.min.js"></script>
-    <script src="https://unpkg.com/aframe-physics-system@1.4.0/dist/aframe-physics-system.min.js"></script>
+    <script src="https://unpkg.com/aframe-environment-component@1.1.0/dist/aframe-environment-component.min.js"></script>
   </head>
   <body>
-    <a-scene physics>
-      <a-box position="-1 4 -3" rotation="0 45 0" color="#4CC3D9" dynamic-body></a-box>
-	  <a-sphere position="0 1.25 -5" radius="1.25" color="#EF2D5E" dynamic-body></a-sphere>
-	  <a-plane position="0 0 -4" rotation="-90 0 0" width="4" height="4" color="#7BC8A4" static-body></a-plane>
-      <a-sky color="#0023FF"></a-sky>
-	  <a-text value="Hello!"></a-text>
-	  <a-camera position="0 2 6"></a-camera>
-	  <a-torus color="#43A367" arc="270" radius="4" radius-tubular="0.1"></a-torus>
-	  <a-torus-knot color="#B84A39" arc="120" p="2" q="7" radius="4" radius-tubular="0.1"></a-torus-knot>
-
-
-	  <a-light type="point" color="red" position="0 5 0"></a-light>
+    <a-scene environment="lightPosition: -2 10 4; ground: noise; groundYScale: 5; groundTexture: walkernoise;
+				groundColor: #009900; groundColor2: #ffe0b3; dressing: torii; dressingScale: 15; dressingAmount: 15; dressingColor: #ff2211">
+      <a-cylinder position="-3 1 -5" rotation="90 0 0" scale="1 1 1" color="#d147a3" animation__position="property: object3D.position.x; to: -1; dir: alternate; dur: 1000; loop: true"></a-cylinder>
+	  <a-cylinder position="3 1 -5" rotation="90 0 0" scale="1 1 1" color="#00e6e6" animation__position="property: object3D.position.x; to: 1; dir: alternate; dur: 1000; loop: true"></a-cylinder>
+      <a-sphere position="-12 5 -10" rotation="0 45 0" scale="1 1 1" color="red" animation__position="property: object3D.position.y; to: 1; dir: alternate; dur: 400; loop: true"></a-sphere>
+	  <a-sphere position="-2 4 -12" rotation="0 45 0" scale="1 1 1" color="pink" animation__position="property: object3D.position.y; to: 1; dir: alternate; dur: 450; loop: true"></a-sphere>
+	  <a-sphere position="14 5 -14" rotation="0 45 0" scale="1 1 1" color="orange" animation__position="property: object3D.position.y; to: 1; dir: alternate; dur: 320; loop: true"></a-sphere>
+      <a-camera>
+        <a-cursor color="white"></a-cursor>
+      </a-camera>
     </a-scene>
   </body>
 </html>
