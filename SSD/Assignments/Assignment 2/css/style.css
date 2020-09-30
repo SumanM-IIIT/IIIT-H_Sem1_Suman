@@ -1,7 +1,8 @@
 body {
-	background: url('../images/background_image2.jpg');
 	margin: 3% 15% 5% 15%;
+	background-image: url('../images/background_image2.jpg');
 }
+
 .heading1 {
 	color: white;
 }
@@ -17,12 +18,17 @@ body {
 	height: auto;
 	border-radius: 50%;
 }
-p {
-	font-family: verdana; 
-	text-align: justify;
-	font-size: 15px;
+h2 {
+	font-family:  arial;
 }
-nav { background: #2ba0db; }
+p {
+	font-family: calibri; 
+	text-align: justify;
+	font-size: 18px;
+}
+nav { 
+background: linear-gradient(#a62c2b, black); 
+}
 
 nav ul {
   font-size: 0;
@@ -39,27 +45,31 @@ nav ul li a {
   color: #fff;
   display: block;
   font-size: 14px;
-  padding: 15px 14px;
+  padding: 15px;
   transition: 0.3s linear;
   text-decoration: none;
 }
 
 
-nav ul li:hover { background: #126d9b; }
+nav ul li:hover { 
+background: linear-gradient(black, #a62c2b); 
+}
 
 nav ul li ul {
-  border-bottom: 5px solid #2ba0db;
+  border-bottom: 5px solid #a62c2b;
   display: none;
   position: absolute;
   width: 250px;
 }
 
 nav ul li ul li {
-  border-top: 1px solid #444;
+  border-top: 1px solid #a62c2b;
   display: block;
 }
 
-nav ul li ul li:first-child { border-top: none; }
+nav ul li ul li:first-child {
+	border-top: none;
+}
 
 nav ul li ul li a {
   background: #373737;
@@ -69,4 +79,6 @@ nav ul li ul li a {
   text-decoration: none;
 }
 
-nav ul li ul li a:hover { background: #126d9b; }
+nav ul li ul li a:hover {
+	background: linear-gradient(black, #a62c2b);
+}
