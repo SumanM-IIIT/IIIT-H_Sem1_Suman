@@ -12,8 +12,8 @@ int main() {
  cout << str;
 return 0;
 }*/
-#include <stdio.h>
-#include <stdlib.h>
+//#include <stdio.h>
+//#include <stdlib.h>
 #include <bits/stdc++.h>
 using namespace std;
 /*int main()
@@ -34,19 +34,32 @@ void init_cmd_arr(string);
 vector<string> cmd_str_arr;
 
 int main() {
-	string str = "I am genius";
+	string str;
+	getline(cin, str, '\n');
+	//cout << "Hello";
 	init_cmd_arr(str);
 
-	for(int i = 0; i < cmd_str_arr.size(); i++) {
+	/*int i = 0;
+	while(i < str.size()) {
+		tmp = "";
+		while(str[i] != ' ' && i < str.size()) {
+			tmp += str[i];
+			i++;
+		}
+		i++;
+		cout << tmp << endl;
+	}*/
+
+	/*for(int i = 0; i < cmd_str_arr.size(); i++) {
 		cout << cmd_str_arr[i];
-	}
+	}*/
 	return 0;
 }
 void init_cmd_arr(string cmd) {
 	cmd_str_arr.clear();
 	int i = 0, len = cmd.size();
 	string tmp;
-	cout << "cmd: " << cmd; 
+	//cout << "cmd: " << cmd; 
 	while(i < len) {
 		tmp = "";
 		//j = i;
@@ -60,7 +73,8 @@ void init_cmd_arr(string cmd) {
 				i++;
 			}
 		}
-		cout << tmp;
+		cout << tmp << endl;
 		cmd_str_arr.push_back(tmp);
+		i++;
 	}
 }

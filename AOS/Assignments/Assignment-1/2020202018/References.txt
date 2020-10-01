@@ -1,0 +1,6 @@
+1. https://stackoverflow.com/questions/358342/canonical-vs-non-canonical-terminal-input
+2. cd.. = going up
+3. cd - = go back
+4. please go through <termios.h> for canonical and non-canonical
+5. In normal mode, the left and right arrow keys have a functionality similar to back and forward buttons in a browser. 
+6. for directory part in command mode go through the <dirent.h>
