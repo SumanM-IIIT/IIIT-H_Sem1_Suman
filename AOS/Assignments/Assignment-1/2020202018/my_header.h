@@ -38,7 +38,8 @@ void clear_input_line();
 string file_perm(struct stat);
 void init_cmd_arr(string);
 void copy(string, string);
-void move(string, string);
+//void move(string, string);
+void delete_dir(string);
 
 
 static struct termios initial_t, new_t;
@@ -319,50 +320,78 @@ void copy(string file, string position) {
 	}
 }
 
-void delete_file(string file_abs_path) {
-	//cursor_movement(status_line, 0);
-	//cout << file_abs_path;
-	int rm = unlink(file_abs_path.c_str());
-	if(rm < 0) {
-		clear_cmd_prompt();
+vector<string> temp_path;
+void delete_dir(string dir_path) {
+	DIR *dir;
+	struct dirent *entry;
+	struct stat meta;
+	dir = opendir(dir_path.c_str());
+	if(!dir) {
 		cursor_movement(status_line, 0);
-		cout << "Unlink() ERROR";
+		cout << "Current Directory NOT found !!: " << dir_path;
+		return;
 	}
-}
-
-void move(string file, string position) {
-	copy(file, position);
-	delete_file(curr_dir + '/' + file);
+	chdir(dir_path.c_str());
+	
+	while((entry = readdir(dir)) != NULL) {
+		//cursor_movement(status_line, 0);
+		//cout << "Inside delete_dir: " << entry->d_name;
+	
+		lstat(entry->d_name, &meta);
+		if(S_ISDIR(meta.st_mode)) {
+			if(entry->d_name == "." || entry->d_name == "..") {
+				continue;
+			}
+			delete_dir(entry->d_name);
+			temp_path.push_back(entry->d_name);
+			//remove(entry->d_name);
+		}
+		else {
+			//remove(entry->d_name);
+			temp_path.push_back(entry->d_name);
+		}
+		//entry = readdir(dir);
+	}
+	chdir("..");
+	closedir(dir);
 }
 
 int search(string file_name, string current_dir) {
-	//int res = 0;
-	/*DIR *dir;
+	int res = 0;
+	DIR *dir;
 	struct dirent *entry;
 	struct stat meta;
-	dir = opendir(current_dir);
+	dir = opendir(current_dir.c_str());
 	if(!dir) {
 		cursor_movement(status_line, 0);
 		cout << "Current Directory NOT found !!";
 		return 0;
 	}
-	entry = readdir(dir);
-	while(entry != NULL) {
-		lstat(entry->d_name, &meta);*/
+	//entry = readdir(dir);
+	chdir(current_dir.c_str());
+	while((entry = readdir(dir)) != NULL) {
+		lstat(entry->d_name, &meta);
 
-		/*if(S_ISDIR(meta.st_mode)) {
+		if(S_ISDIR(meta.st_mode)) {
 			if(entry->d_name == "." || entry->d_name == "..") {
 				continue;
 			}
-			search(file_name, entry->d_name);
+			if(file_name.c_str() == entry->d_name) {
+				res = 1;
+				break;
+			}
+			res = search(file_name, entry->d_name);
 		}
 		else {
 			if(file_name.c_str() == entry->d_name) {
-				return 1;
+				res = 1;
+				break;
 			}
 		}
-	}*/
-	return 0;
+		//entry = readdir(dir);
+	}
+	chdir("..");
+	return res;
 }
 
 void command_mode() {
@@ -441,7 +470,7 @@ void command_mode() {
 			cout << "Copied the desired files to the directory: " << pos;
 		}
 		else if(cmd_str_arr[0] == "move") {
-			int len = cmd_str_arr.size();
+			int flag, len = cmd_str_arr.size();
 			string file, pos;
 			if(cmd_str_arr[len - 1][0] == '~') {
 				pos = root + cmd_str_arr[len - 1].substr(1);
@@ -457,10 +486,12 @@ void command_mode() {
 			}
 			for(int i = 1; i < len - 1; i++) {
 				file = cmd_str_arr[i];
-				move(file, pos);
+				copy(file, pos);
+				flag = remove((string(curr_dir) + '/' + file).c_str());
 			}
 			clear_cmd_prompt();
 			cursor_movement(op_line, 0);
+			//string t = string(curr_dir) + '/' + file;
 			cout << "Moved the desired files to the directory: " << pos;
 		}
 		else if(cmd_str_arr[0] == "rename") {
@@ -523,12 +554,45 @@ void command_mode() {
 				continue;
 			}
 			clear_cmd_prompt();
-			delete_file(path_file);
-			cursor_movement(op_line, 0);
-			cout << "DELETED the desired file SUCCESSFULLY !!";	
+			int flag = remove(path_file.c_str());
+			if(flag == 0) { 
+				cursor_movement(op_line, 0);
+				cout << "DELETED the desired file SUCCESSFULLY !!";	
+			}
+			else {
+				cursor_movement(status_line, 0);
+				cout << "remove() ERROR !!";		
+			}
 		}
 		else if(cmd_str_arr[0] == "delete_dir") {
-			
+			string path_dir;
+			if(cmd_str_arr[1][0] == '~') {
+				path_dir = root + cmd_str_arr[1].substr(1);
+			}
+			else if(cmd_str_arr[1][0] == '/') {
+				path_dir = curr_dir + cmd_str_arr[1];
+			}
+			else {
+				clear_cmd_prompt();
+				cursor_movement(status_line, 0);
+				cout << "INVALID PATH !!";
+				continue;
+			}
+			clear_cmd_prompt();
+			delete_dir(path_dir);
+			int flag = 0;//remove(path_dir.c_str());
+			if(flag == 0) { 
+				cursor_movement(op_line, 0);
+				//cout << "DELETED the desired directory SUCCESSFULLY !!: " << path_dir;	
+				cout << temp_path.size() << path_dir;
+				/*for(int i = 0; i < temp_path.size(); i++) {
+					cout << temp_path[i] << endl;
+				}*/
+			}
+			else {
+				cursor_movement(status_line, 0);
+				cout << "remove() ERROR !!";		
+			}
 		}
 		else if(cmd_str_arr[0] == "goto") {
 			if(cmd_str_arr[1][0] == '/') {
@@ -545,7 +609,7 @@ void command_mode() {
 			
 			clear_cmd_prompt();
 			cursor_movement(op_line, 0);
-			if(res) {
+			if(res == 1) {
 				cout << "True";
 			}
 			else 

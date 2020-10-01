@@ -34,10 +34,10 @@ void init_cmd_arr(string);
 vector<string> cmd_str_arr;
 
 int main() {
-	string str;
-	getline(cin, str, '\n');
+	string str = "/home/bug_sm87/IIIT-H_Sem1_Suman/AOS/Assignments/Assignment-1/2020202018/demo2.txt";
+	//getline(cin, str, '\n');
 	//cout << "Hello";
-	init_cmd_arr(str);
+	//init_cmd_arr(str);
 
 	/*int i = 0;
 	while(i < str.size()) {
@@ -53,6 +53,9 @@ int main() {
 	/*for(int i = 0; i < cmd_str_arr.size(); i++) {
 		cout << cmd_str_arr[i];
 	}*/
+
+	int c = remove(str.c_str());
+	cout << c;
 	return 0;
 }
 void init_cmd_arr(string cmd) {
