@@ -20,6 +20,10 @@ avl_node* left_rotation(avl_node*);
 avl_node* right_rotation(avl_node*);
 int avl_height(avl_node*);
 void print_inorder(avl_node*);
+int count_elements(avl_node*, int, int);
+int total_elements_avl(avl_node*);
+void k_largest(avl_node*, int);
+int count_elements(avl_node*, int, int);
 
 
 avl_node* insert_node(avl_node* node, int val) {		
@@ -29,33 +33,32 @@ avl_node* insert_node(avl_node* node, int val) {
 		node->count = 1;
 		node->left = node->right = NULL;
 	}
-	else {
-		if(val > node->value) {
-			node->right = insert_node(node->right, val);
-			if(balance(node) < -1) {
-				if(val > node->right->value) {
-					node = RR(node);
-				}
-				else {
-					node = RL(node);
-				}
+	else if(val > node->value) {
+		node->right = insert_node(node->right, val);
+		if(balance(node) < -1) {
+			if(val > node->right->value) {
+				node = RR(node);
 			}
-			node->height = avl_height(node);
-		}
-		else if(val < node->value) {
-			node->left = insert_node(node->left, val);
-			if(balance(node) > 1) {
-				if(val < node->left->value)
-					node = LL(node);
-				else
-					node = LR(node);
+			else {
+				node = RL(node);
 			}
-			node->height = avl_height(node);
 		}
-		else {
-			node->count++;
-		}
+		//node->height = avl_height(node);
 	}
+	else if(val < node->value) {
+		node->left = insert_node(node->left, val);
+		if(balance(node) > 1) {
+			if(val < node->left->value)
+				node = LL(node);
+			else
+				node = LR(node);
+		}
+		//node->height = avl_height(node);
+	}
+	else {
+		node->count++;
+	}
+	node->height = avl_height(node);
 	return node;
 }
 avl_node* delete_node(avl_node* node, int val) {
@@ -109,7 +112,7 @@ avl_node* search_node(avl_node* node, int val) {
 		return search_node(node->right, val); 
 }
 avl_node* RR(avl_node* node) {
-	node = right_rotation(node);
+	node = left_rotation(node);
 	return node;
 }
 avl_node* RL(avl_node* node) {
@@ -118,7 +121,7 @@ avl_node* RL(avl_node* node) {
 	return node;
 }
 avl_node* LL(avl_node* node) {
-	node = left_rotation(node);
+	node = right_rotation(node);
 	return node;
 }
 avl_node* LR(avl_node* node) {
@@ -187,20 +190,56 @@ int count_occ(avl_node* node, int val) {
 void print_inorder(avl_node* node) {
 	if(node) {
 		print_inorder(node->left);
-		cout << node->value << "(Balance = " << balance(node) << "; Count = " << node->count << ")" << endl;
+		if(node->count > 1) {
+			int cnt = node->count;
+			for(int i = 0; i < cnt; i++) 
+				cout << node->value << "(Balance = " << balance(node) << "; Count = " << node->count << ")" << endl;	
+		}
+		else
+			cout << node->value << "(Balance = " << balance(node) << "; Count = " << node->count << ")" << endl;
 		print_inorder(node->right);
 	}
 }
-
-
+int total_elements_avl(avl_node* node) {
+	int cnt = 1;
+	if(!node)
+		return 0;
+	cnt += total_elements_avl(node->left);
+	cnt += total_elements_avl(node->right);
+	return cnt;
+}
+int k_largest(avl_node* node, int *cnt, int k) {
+	if(!node)
+		return -1;
+	int left = k_largest(node->right, cnt, k);
+	if(left != -1)
+		return left;
+	if(++*cnt == k)
+		return node->value;
+	return k_largest(node->left, cnt, k);
+}
+int count_elements(avl_node* node, int x, int y) {
+	if(!node)
+		return 0;
+	if(node->value == x && node->value == y)
+		return 1;
+	if(node->value < x)
+		return count_elements(node->right, x, y);
+	else if(node->value > y)
+		return count_elements(node->left, x, y);
+	else {
+		return (1 + count_elements(node->left, x, y) + count_elements(node->right, x, y));
+	}
+}
 
 int main() {
-	avl_node *tmp, *root = NULL;
-	int x, inp1, cnt;
+	avl_node *tmp, *tmp2, *root = NULL;
+	int x, inp1, inp2, cnt, k, n;
 	//bool srch;
 	//cin >> x;
 	while(1) {
 		cin >> x;
+		int cnt = 0;
 		switch(x) {
 			case 1: cin >> inp1; //INSERT
 					root = insert_node(root, inp1);
@@ -225,8 +264,16 @@ int main() {
 			case 5: break;
 			case 6: break;
 			case 7: break;
-			case 8: break;
-			case 9: break;
+			case 8: cin >> k;
+					n = total_elements_avl(root);
+					if(k <= n)
+						cout << k_largest(root, &cnt, k) << endl;
+					else 
+						cout << "INVALID value of 'k'" << endl;
+					break;
+			case 9: cin >> inp1 >> inp2;
+					cout << count_elements(root, inp1, inp2);
+					break;
 			case 0: exit(1);
 			default: break;
 		}
