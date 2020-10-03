@@ -1,7 +1,49 @@
 #include<iostream>
 using namespace std;
 
+class Student {
+public:
+    int rollno;
+  	string name;
+  	Student() {
+  		rollno = 0;
+  		name = "";
+  	}
+  	Student(string n, int r) {
+  		name = n;
+  		rollno = r;
+  	}
+  
+  	bool operator==(const Student &s) const {  
+        return rollno == s.rollno; 
+  	}
+  	bool operator>(const Student &s) const {  
+        return rollno > s.rollno; 
+  	}
+  	bool operator<(const Student &s) const { 
+        return rollno < s.rollno; 
+  	}
+  	bool operator!=(const Student &s) const {  
+        return rollno != s.rollno; 
+  	}
+  	bool operator>=(const Student &s) const {  
+        return rollno >= s.rollno; 
+  	}
+  	bool operator<=(const Student &s) const {  
+        return rollno <= s.rollno; 
+  	}
+  	friend ostream& operator<<(ostream& o, const Student &s) {
+		o << s.name << ", Roll: " << s.rollno;
+		return o;
+	}
+};
 
+class Compare { 
+public: 
+   	bool operator()(Student a, Student b) { 
+        return a.name == b.name;
+    } 
+};
 
 template <typename T>
 class AVL {
@@ -300,6 +342,8 @@ int main() {
 	AVL<int> *tmp, *root = NULL;
 	int inp1, x, y, cnt;
 	int op;
+	//Student s(25, "Suman Mitra");
+	//cout << s << endl;
 	while(1) {
 		cnt = 0;
 		cin >> op;
