@@ -38,12 +38,12 @@ public:
 	}
 };
 
-class Compare { 
+/*class Compare { 
 public: 
    	bool operator()(Student a, Student b) { 
         return a.name == b.name;
     } 
-};
+};*/
 
 template <typename T>
 class AVL {
