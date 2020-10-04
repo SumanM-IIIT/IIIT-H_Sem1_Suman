@@ -339,8 +339,11 @@ template<typename T> AVL<T>* AVL<T>::upper_bound(AVL<T>* node, T val) {
 
 
 int main() {
-	AVL<int> *tmp, *root = NULL;
+	AVL<Student> *tmp, *root = NULL;
 	int inp1, x, y, cnt;
+	Student s;
+	string s_name;
+	int s_roll;
 	int op;
 	//Student s(25, "Suman Mitra");
 	//cout << s << endl;
@@ -348,11 +351,14 @@ int main() {
 		cnt = 0;
 		cin >> op;
 		switch(op) {
-			case 1: cin >> inp1;
-					root = AVL<int>::insert_node(root, inp1);	//INSERT NODE
+			case 1: cin >> s_name >> s_roll;
+					s.name = s_name;
+					s.rollno = s_roll;
+					root = AVL<Student>::insert_node(root, s);	//INSERT NODE
 					break;
-			case 2:	cin >> inp1;
-					root = AVL<int>::delete_node(root, inp1);	//DELETE NODE
+			/*case 2:	cin >> s_name >> inp1;
+					s(s_name, inp1);
+					root = AVL<Student>::delete_node(root, s);	//DELETE NODE
 					break;
 			case 3: cin >> inp1;
 					tmp = AVL<int>::search_node(root, inp1);	//SEARCH NODE
@@ -390,13 +396,13 @@ int main() {
 					break;
 			case 9: cin >> x >> y;
 					cout << AVL<int>::count_range(root, x, y) << endl;	//COUNT ELEMENTS IN A GIVEN RANGE
-					break;
+					break;*/
 			case 0: exit(1);
 			default: cout << "Enter Values b/w 0 to 9" << endl;
 					break;
 
 		}
-		AVL<int>::print_inorder(root);
+		AVL<Student>::print_inorder(root);
 		cout << endl;
 	}
 	/**root = AVL<int>::insert_node(root, 5);
