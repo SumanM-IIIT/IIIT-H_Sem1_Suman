@@ -1,4 +1,5 @@
-#include<iostream>
+#include <iostream>
+#include <sstream>
 using namespace std;
 
 #define SIZE 100000
@@ -7,7 +8,7 @@ typedef long long ll;
 template<typename K, typename V>
 class unordered_map {
 public:
-	ll big_prime = 99991;
+	//ll big_prime = 99991;
 	ll bucket_size = SIZE;
 	class map_node {
 	public:
@@ -23,15 +24,43 @@ public:
 			umap[i++] = NULL;
 		}
 	}
+	int char_val(char c) {
+		int res;
+		if(c >= 'a' && c <= 'z') 
+			res = c - 'a' + 1;
+		else if(c >= 'A' && c <= 'Z') 
+			res = c - 'A' + 27;
+		else if(c >= '0' && c <= '9') 
+			res = c - '0' + 53;
+		else if(c == '_')
+			res = 63;
+		else if(c == ' ')
+			res = 64;
+		else if(c == '-')
+			res = 65;
+		else if(c == '.')
+			res = 66;
+		else if(c == '@')
+			res = 67;
+		else if(c == '$')
+			res = 68;
+		else if(c == '(')
+			res = 69;
+		else if(c == ')')
+			res = 70;
+		else
+			res = 71;
+		return res; 
+	}
 	ll hash_function(K key) {
 		ostringstream os;
         os << key;
         string key_str = os.str(); 
-		ll hash = 0, prod = 1;
-		for(ll i = 0; i < key_str.size(); i++) {
-			hash += (key_str[i] * prod);
-            hash %= bucket_size;
-            prod *= big_prime;
+        const int p = 73, m = 99991;
+		ll hash = 0, p_power = 1;
+		for(char c: key_str) {
+			hash = (hash + char_val(c) * p_power) % m;
+			p_power = (p_power * p) % m;
 		}
 		return hash;
 	}
@@ -60,7 +89,26 @@ public:
 		}
 	}
 	void delete_umap(K key) {
-
+		ll pos = hash_function(key);
+		map_node* first = umap[pos];
+		map_node* tmp = first, *prev;
+		if(first) {
+			if(first->key == key) {
+				first = first->next;
+				umap[pos] = first;
+				free(tmp);
+			}
+			else {
+				while(tmp->next && tmp->key != key) {
+					prev = tmp;
+					tmp = tmp->next;
+				}
+				if(tmp->next && tmp->key == key) {
+					prev->next = tmp->next;
+					free(tmp);
+				}
+			}
+		}
 	}
 	bool find_umap(K key) {
 		ll pos = hash_function(key);
@@ -91,7 +139,8 @@ public:
 		}
 	}
 	V operator[](K key) {
-		return umap[key]->value;
+		ll pos = hash_function(key);
+		return umap[pos]->value;
 	}
 	map_node* new_node(K key, V value) {
 		map_node *tmp = new map_node;
@@ -102,80 +151,11 @@ public:
 	}
 };
 
-/*template<typename K, typename V> ll unordered_map::hash_function(K key) {
-	return key % hash_mod;
-}
-template<typename K, typename V> void unordered_map::insert_umap(K key, V value) {
-	ll pos = hash_function(key);
-	map_node* first = umap[pos];
-	if(!first) {
-		map_node* tmp = new_node(key, value);
-		umap[pos] = tmp;
-	}
-	else if(!first->next) {
-		if(first->key != key) {
-			map_node* tmp = new_node(key, value);
-			first->next = tmp;
-		}
-	}
-	else {
-		map_node* tmp = first;
-		while(tmp->next && tmp->key != key) {
-			tmp = tmp->next;
-		}
-		if(tmp->key != key) {
-			map_node* tmp2 = new_node(key, value);
-			tmp->next = tmp2;
-		}
-	}
-}
-template<typename K, typename V> void unordered_map::delete_umap(K key) {
-	
-}
-template<typename K, typename V> bool unordered_map::find_umap(K key) {
-	ll pos = hash_function(key);
-	node *first = umap[pos];
-	//bool res;
-	if(!first) {
-		return false;
-	}
-	else {
-		node *tmp = first;
-		while(tmp) {
-			if(tmp->key == key) 
-				return true;
-			tmp = tmp->next;
-		}
-		return false;
-	}
-}
-template<typename K, typename V> void unordered_map::display_umap() {
-	ll i = 0;
-	while(i < bucket_size) {
-		map_node* tmp = umap[i++];
-		while(tmp) {
-			cout << "(" << tmp->key << ", " << tmp->value << ")";
-			tmp = tmp->next;
-		}
-		cout << endl;
-	}	
-}
-template<typename K, typename V> V unordered_map::operator[](K key) {  
-	return umap[key]->value;
-}
-template<typename K, typename V> map_node* unordered_map::new_node(K key, V value) {
-	map_node *tmp = new map_node;
-	tmp->key = key;
-	tmp->value = value;
-	tmp->next = nullptr;
-	return tmp;
-}*/
-
 
 int main() {
-	ll key;
+	unordered_map<string, string> m;
+	string key;
 	string value;
-	unordered_map<ll, string> m;
 	int op;
 	bool res;
 
@@ -204,7 +184,7 @@ int main() {
 			case 0: exit(1);
 			default: break;
 		}
-		m.display_umap();
+		//m.display_umap();
 	}
 	return 0;
 }
