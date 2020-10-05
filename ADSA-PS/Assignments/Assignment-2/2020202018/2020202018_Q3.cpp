@@ -15,6 +15,7 @@ public:
 	};
 	map_node *root;
 	ll count = 0;
+	V def;
 
 	ordered_map() {
 		root = NULL;
@@ -27,11 +28,13 @@ public:
 	}
 
 	map_node* insert_omap_util(map_node* node, K key, V value) {
+		//cout << " insert " << key << value << endl;
+		def = value;
 		if(!node) {
 			node = (map_node*)malloc(sizeof(map_node));
 			node->key = key;
 			node->value = value;
-			count += 1;
+			count++;
 			node->left = node->right = NULL;
 		}
 		else if(key > node->key) {
@@ -54,56 +57,63 @@ public:
 					node = LR(node);
 			}
 		}
+		else 
+			node->value = value;
 		node->height = omap_height(node);
 		return node;
 	}
 	void insert_omap(K key, V value) {
 		root = insert_omap_util(root, key, value);
 	}
-	map_node* min_key(map_node* node) {  
+	/*map_node* min_key(map_node* node) {  
 	    map_node* curr = node;  
 	  	while (curr->left)  
 	        curr = curr->left;  
 	    return curr;  
-	}  
+	} */ 
 	map_node* erase_omap(map_node* node, K key) {
-		if (!node)  
-	        return node;  
-		if (key < node->key)  
-	        node->left = erase_omap(node->left, key);    
-	    else if(key > node->key)  
-	        node->right = erase_omap(node->right, key);  
-		else { 
-			map_node* tmp; 
-	        if(!node->left || !node->right) {  
-	            tmp = node->left ? node->left : node->right;  
-	  			if (!tmp) {  
-	                tmp = node;  
-	                node = NULL;  
-	            }  
-	            else
-	            	*node = *tmp;
-	            free(tmp);  
-	        }  
-	        else {  
-	            tmp = min_key(tmp->right);  
-	  			node->key = tmp->key; 
-	  			node->value = tmp->value; 
-	  			node->right = erase_omap(node->right, tmp->key);  
-	        }  
-	    }  
-	  	if (!node)  
-	    	return node;  
-	  	node->height = omap_height(node);
-	  	if (balance(node) > 1 && balance(node->left) >= 0)  
-	        return LL(node);  
-	  	if (balance(node) > 1 && balance(node->left) < 0)
-	        return LR(node); 
-	  	if (balance(node) < -1 && balance(node->right) <= 0)  
-	        return RR(node);  
-	  	if (balance(node) < -1 && balance(node->right) > 0)
-	        return RL(node);  
-	    return node;
+		map_node *tmp;	
+		if(!node)
+			return NULL;
+		else if(key > node->key) {
+			node->right = erase_omap(node->right, key);
+			if(balance(node) > 1) {
+				if(balance(node->left) >= 0)
+					node = LL(node);
+				else
+					node = LR(node);
+			}
+		}
+		else if(key < node->key) {
+			node->left = erase_omap(node->left, key);
+			if(balance(node) < -1) {
+				if(balance(node->right) <= 0)
+					node = RR(node);
+				else
+					node = RL(node);
+			}
+		}
+		else {
+			if(node->right) {
+				tmp = node->right;
+				while(tmp->left)
+					tmp = tmp->left;
+				node->key = tmp->key;
+				node->value = tmp->value;
+				node->right = erase_omap(node->right, tmp->key);
+				if(balance(node) > 1) {
+					if(balance(node->left) >= 0)
+						node = LL(node);
+					else
+						node = LR(node);
+				}
+			}
+			else
+				return node->left;
+			count--;
+		}
+		node->height = omap_height(node);
+		return node;
 	}
 	void erase_omap(K key) {
 		root = erase_omap(root, key);
@@ -121,8 +131,32 @@ public:
 	bool find_omap(K key) {
 		return find_omap(root, key);
 	}
-	V operator[](K key) {
-		
+	map_node* proxy(map_node* root, K key) {
+		if (root->key == key) 
+	       	return root; 
+	    if (root->key > key) 
+	       	return proxy(root->left, key);
+	    else 
+			return proxy(root->right, key);
+	}
+	V& find_omap_val(map_node* root, K key) {
+		if (!root) {
+			V def = (*this).def;//*((V*)malloc(sizeof(V)));
+			//return def;
+			//cout << " hi " << endl;
+			(*this).root = insert_omap_util((*this).root, key, def);
+			map_node* tmp = proxy((*this).root, key);
+			return tmp->value;
+		}
+		if (root->key == key) 
+	       	return root->value; 
+	    if (root->key > key) 
+	       	return find_omap_val(root->left, key);
+	    else 
+			return find_omap_val(root->right, key);
+	}
+	V& operator[](K key) {
+		return find_omap_val(root, key);
 	}
 	ll size_omap() {
 		return count;
@@ -243,10 +277,9 @@ int main() {
 					else
 						cout << 0 << endl;
 					break;
-			case 4: /*cin >> key;
-					if(!m[key])
-						m.insert_omap(key, 0);
-					cout << m[key] << endl;*/
+			case 4: cin >> key >> value;
+					m[key] = value;
+					cout << m[key] << endl;
 					break;
 			case 5: cout << m.size_omap() << endl;
 					break;
