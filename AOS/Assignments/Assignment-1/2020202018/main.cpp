@@ -16,10 +16,31 @@ int main() {
 	init_keys();
 
 	while(1) {
-		if(all_ok()) {	
+		if(keyboard_press()) {	
 			ch = read_char();
 			//cout << ch << endl;
-			switch(ch) {
+			if(ch == 'A' || ch == 'k')
+				go_up();
+			else if(ch == 'B' || ch == 'l')
+				go_down();
+			else if(ch == 'D')
+				go_back();
+			else if(ch == 'C')
+				go_forward();
+			else if(ch == BACKSPACE)
+				go_up_level();
+			else if(ch == 'h')
+				go_home();
+			else if(ch == ENTER)
+				open_file_dir();
+			else if(ch == ':')
+				command_mode();
+			else if(ch == 'q') {
+				clear();
+				off_keys();
+				exit(1);
+			}
+			/*switch(ch) {
 				case 'A': go_up();
 						break;
 				case 'B': go_down();
@@ -40,7 +61,7 @@ int main() {
 						exit(1);
 				default:
 					break; 
-			}
+			}*/
 		}
 	}
 	//cout << "\033[H\033[1";

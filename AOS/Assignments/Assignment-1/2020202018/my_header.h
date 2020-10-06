@@ -10,6 +10,7 @@
 #include <dirent.h>
 #include <time.h>
 #include <iomanip>
+#include <sys/wait.h>
 using namespace std;
 
 #define BACKSLASH 92
@@ -31,7 +32,7 @@ void root_path(char const*);
 void curr_dir_path(char const*);
 void init_keys();
 void off_keys();
-int all_ok();
+int keyboard_press();
 void command_mode();
 void clear_cmd_prompt();
 void clear_input_line();
@@ -81,16 +82,18 @@ void print_all() {
 	int i;
 	for(i = first; i < last && i < dir_file_arr.size(); i++) {
 		lstat(dir_file_arr[i]->d_name, &meta);
+		char date[50];
+		strftime(date, 20, "%d-%m-%y %H:%M:%S", localtime(&(meta.st_mtime)));
 		if(S_ISDIR(meta.st_mode)) 
-			cout << "\033[1;31m" << left << setw(30) << dir_file_arr[i]->d_name << setw(20) << meta.st_size/1024 << setw(20) << file_perm(meta) << "\033[0m" << endl;
+			cout << "\033[1;31m" << left << setw(15) << file_perm(meta) << setw(15) << to_string(meta.st_size/1024) + "KB" << setw(20) << date << dir_file_arr[i]->d_name << "\033[0m" << endl;
 		else
-			cout << "\033[1;34m" << left << setw(30) << dir_file_arr[i]->d_name << setw(20) << meta.st_size/1024 << setw(20) << file_perm(meta) << "\033[0m" << endl;
+			cout << "\033[1;34m" << left << setw(15) << file_perm(meta) << setw(15) << to_string(meta.st_size/1024) + "KB" << setw(20) << date << dir_file_arr[i]->d_name << "\033[0m" << endl;
 	}
 	cursor_movement(start_line, 0);
 	for(int i = 0; i < win.ws_col; i++) {
 		cout << "-";
 	}
-	//cursor_movement(first, 0);
+	cursor_movement(first, 51);
 }
 
 void open_file_dir() {
@@ -108,12 +111,16 @@ void open_file_dir() {
 	}
 	else {
 		pid_t pid = fork();
+		int status;
+		pid_t result = waitpid(pid, &status, WNOHANG);
 		if(pid == 0) {
-			//off_keys();
-			execl("/usr/bin/vi", "vi", dir_file, NULL);
+			off_keys();
+			execl("/usr/bin/vi", "vi", "-e", dir_file, NULL);
 			//init_keys();
-			exit(1);
+			//exit(1);
 		}
+		if(result != 0 || result != -1)
+			init_keys();
 	}
 }
 
@@ -148,7 +155,7 @@ void curr_dir_path(char const* dir_path) {
 		cursor = 1;//min(int(dir_file_arr.size()), maxi_rows);
 		last = min(int(dir_file_arr.size()), maxi_rows);
 		print_all();
-		cursor_movement(cursor, 0);
+		cursor_movement(cursor, 51);
 	}
 	else {
 		//cout << "No such directory: " << dir_path;
@@ -189,7 +196,7 @@ void cursor_movement(int x, int y) {
 void go_up() {
 	if(cursor > 1) {
 		cursor--;
-		cursor_movement(cursor, 0);
+		cursor_movement(cursor, 51);
 		return;
 	}
 	if(first == 0)
@@ -197,13 +204,13 @@ void go_up() {
 	first--;
 	last--;
 	print_all();
-	cursor_movement(cursor, 0);
+	cursor_movement(cursor, 51);
 }
 
 void go_down() {
 	if(cursor < dir_file_arr.size() && cursor < maxi_rows) {
 		cursor++;
-		cursor_movement(cursor, 0);
+		cursor_movement(cursor, 51);
 		return;
 	}
 	if(last == dir_file_arr.size())
@@ -211,10 +218,10 @@ void go_down() {
 	first++;
 	last++;
 	print_all();
-	cursor_movement(cursor, 0);
+	cursor_movement(cursor, 51);
 }
 
-int all_ok() {
+int keyboard_press() {
 	if(top_c != -1)
 		return 1;
 	new_t.c_cc[VMIN] = 0;
@@ -265,22 +272,22 @@ void go_up_level() {
 }
 
 void clear_cmd_prompt() {
-	cursor_movement(inp_line, 0);
+	cursor_movement(inp_line, 51);
 	int i, j;
 	for(i = inp_line; i < win.ws_row; i++) {
 		for(j = 0; j < win.ws_col; j++) {
 			cout << " ";
 		}
 	}
-	cursor_movement(inp_line, 0);
+	cursor_movement(inp_line, 51);
 }
 void clear_input_line() {
-	cursor_movement(inp_line, 0);
+	cursor_movement(inp_line, 51);
 	int i, j;
 	for(j = 0; j < win.ws_col; j++) {
 		cout << " ";
 	}
-	cursor_movement(inp_line, 0);
+	cursor_movement(inp_line, 51);
 }
 
 void init_cmd_arr(string cmd) {
@@ -327,7 +334,7 @@ void delete_dir(string dir_path) {
 	struct stat meta;
 	dir = opendir(dir_path.c_str());
 	if(!dir) {
-		cursor_movement(status_line, 0);
+		cursor_movement(status_line, 51);
 		cout << "Current Directory NOT found !!: " << dir_path;
 		return;
 	}
@@ -363,7 +370,7 @@ int search(string file_name, string current_dir) {
 	struct stat meta;
 	dir = opendir(current_dir.c_str());
 	if(!dir) {
-		cursor_movement(status_line, 0);
+		cursor_movement(status_line, 51);
 		cout << "Current Directory NOT found !!";
 		return 0;
 	}
