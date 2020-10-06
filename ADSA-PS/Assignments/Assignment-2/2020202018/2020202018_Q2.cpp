@@ -88,7 +88,7 @@ public:
 			}
 		}
 	}
-	void delete_umap(K key) {
+	void erase_umap(K key) {
 		ll pos = hash_function(key);
 		map_node* first = umap[pos];
 		map_node* tmp = first, *prev;
@@ -129,14 +129,16 @@ public:
 	}
 	void display_umap() {
 		ll i = 0;
-		while(i < bucket_size) {
-			map_node* tmp = umap[i++];
-			while(tmp) {
-				cout << "(" << tmp->key << ", " << tmp->value << ")";
+		while(i < SIZE) {
+			map_node* tmp = umap[i];
+			while(tmp != NULL) {
+				cout << "(" << tmp->key << ": " << tmp->value << ") ";
 				tmp = tmp->next;
 			}
-			cout << endl;
+			//cout << "Hello" << endl;
+			i++;
 		}
+		cout << endl;
 	}
 	V operator[](K key) {
 		ll pos = hash_function(key);
@@ -166,7 +168,7 @@ int main() {
 					m.insert_umap(key, value);
 					break;
 			case 2: cin >> key;
-					m.delete_umap(key);
+					m.erase_umap(key);
 					break;
 			case 3: cin >> key;
 					res = m.find_umap(key);
@@ -184,7 +186,7 @@ int main() {
 			case 0: exit(1);
 			default: break;
 		}
-		//m.display_umap();
+		m.display_umap();
 	}
 	return 0;
 }

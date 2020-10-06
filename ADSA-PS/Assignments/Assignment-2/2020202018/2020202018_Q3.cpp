@@ -1,4 +1,5 @@
-#include<iostream>
+#include <iostream>
+#include <typeinfo>
 using namespace std;
 
 typedef long long ll;
@@ -29,7 +30,6 @@ public:
 
 	map_node* insert_omap_util(map_node* node, K key, V value) {
 		//cout << " insert " << key << value << endl;
-		def = value;
 		if(!node) {
 			node = (map_node*)malloc(sizeof(map_node));
 			node->key = key;
@@ -37,6 +37,9 @@ public:
 			count++;
 			node->left = node->right = NULL;
 		}
+		if(count == 1) 
+			def = value;
+
 		else if(key > node->key) {
 			node->right = insert_omap_util(node->right, key, value);
 			if(balance(node) < -1) {
@@ -60,6 +63,7 @@ public:
 		else 
 			node->value = value;
 		node->height = omap_height(node);
+		//cout << "Insert value: " << node->value << endl;
 		return node;
 	}
 	void insert_omap(K key, V value) {
@@ -139,13 +143,15 @@ public:
 	    else 
 			return proxy(root->right, key);
 	}
-	V& find_omap_val(map_node* root, K key) {
+	/*V& find_omap_val(map_node* root, K key) {
 		if (!root) {
 			V def = (*this).def;//*((V*)malloc(sizeof(V)));
 			//return def;
 			//cout << " hi " << endl;
 			(*this).root = insert_omap_util((*this).root, key, def);
+			//root = insert_omap_util(root, key, def);
 			map_node* tmp = proxy((*this).root, key);
+			//map_node* tmp = proxy(root, key);
 			return tmp->value;
 		}
 		if (root->key == key) 
@@ -154,9 +160,21 @@ public:
 	       	return find_omap_val(root->left, key);
 	    else 
 			return find_omap_val(root->right, key);
-	}
+	}*/
 	V& operator[](K key) {
-		return find_omap_val(root, key);
+		V def = (*this).def;
+		//string str1 = "string", strtype = typeid(def).name();
+		if(!find_omap(key)) {
+			/*if(strtype.find(str1) != string::npos)
+				def = (V)"default";
+			else
+				def = 0;*/
+			(*this).root = insert_omap_util((*this).root, key, def);
+			//return def;
+		}
+		map_node* tmp = proxy((*this).root, key);
+		return tmp->value;			
+		//return find_omap_val(root, key);
 	}
 	ll size_omap() {
 		return count;

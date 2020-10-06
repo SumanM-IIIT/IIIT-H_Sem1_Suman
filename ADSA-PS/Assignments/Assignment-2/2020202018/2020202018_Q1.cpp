@@ -33,7 +33,7 @@ public:
         return rollno <= s.rollno; 
   	}
   	friend ostream& operator<<(ostream& o, const Student &s) {
-		o << s.name << ", Roll: " << s.rollno;
+		o << "(" << s.name << ", Roll: " << s.rollno << ")";
 		return o;
 	}
 };
@@ -339,11 +339,11 @@ template<typename T> AVL<T>* AVL<T>::upper_bound(AVL<T>* node, T val) {
 
 
 int main() {
-	AVL<int> *tmp, *root = NULL;
+	AVL<Student> *tmp, *root = NULL;
 	int inp1, x, y, cnt;
-	/*Student s;
+	Student *s, *s2;
 	string s_name;
-	int s_roll;*/
+	int s_roll;
 	int op;
 	//Student s(25, "Suman Mitra");
 	//cout << s << endl;
@@ -351,59 +351,68 @@ int main() {
 		cnt = 0;
 		cin >> op;
 		switch(op) {
-			case 1: /*cin >> s_name >> s_roll;
-					s.name = s_name;
-					s.rollno = s_roll;*/
-					cin >> inp1;
-					root = AVL<int>::insert_node(root, inp1);	//INSERT NODE
+			case 1: cin >> s_name >> s_roll;
+					s = new Student(s_name, s_roll);
+					//s.name = s_name;
+					//s.rollno = s_roll;
+					//cin >> inp1;
+					root = AVL<Student>::insert_node(root, *s);	//INSERT NODE
 					break;
-			case 2:	cin >> inp1;
-					//s(s_name, inp1);
-					root = AVL<int>::delete_node(root, inp1);	//DELETE NODE
+			case 2:	//cin >> inp1;
+					cin >> s_roll;
+					s = new Student("", s_roll);
+					root = AVL<Student>::delete_node(root, *s);	//DELETE NODE
 					break;
-			case 3: cin >> inp1;
-					tmp = AVL<int>::search_node(root, inp1);	//SEARCH NODE
+			case 3: cin >> s_roll;
+					s = new Student("", s_roll);
+					tmp = AVL<Student>::search_node(root, *s);	//SEARCH NODE
 					if(tmp)
 						cout << "PRESENT: " << tmp->value << endl;
 					else
 						cout << "NOT PRESENT" << endl; 
 					break;
-			case 4: cin >> inp1;
-					tmp = AVL<int>::search_node(root, inp1);	//COUNT OCCURENCES OF AN ELEMENT
+			case 4: cin >> s_roll;
+					s = new Student("", s_roll);
+					tmp = AVL<Student>::search_node(root, *s);	//COUNT OCCURENCES OF AN ELEMENT
 					if(tmp)
 						cout << tmp->count << endl;
 					else
 						cout << 0 << endl;
 					break;
-			case 5:	cin >> inp1;	
-					tmp = AVL<int>::lower_bound(root, inp1);	//LOWER BOUND
+			case 5:	cin >> s_roll;
+					s = new Student("", s_roll);	
+					tmp = AVL<Student>::lower_bound(root, *s);	//LOWER BOUND
 					if(tmp)
 						cout << tmp->value << endl;
 					else 
 						cout << "NULL" << endl;
 					break;
-			case 6: cin >> inp1;
-					tmp = AVL<int>::upper_bound(root, inp1);	//UPPER BOUND
+			case 6: cin >> s_roll;
+					s = new Student("", s_roll);	
+					tmp = AVL<Student>::upper_bound(root, *s);	//UPPER BOUND
 					if(tmp)
 						cout << tmp->value << endl;
 					else 
 						cout << "NULL" << endl;
 					break;
-			case 7: cin >> inp1;
-					cout << AVL<int>::closest(root, inp1) << endl;		//CLOSEST ELEMENT TO SOME VALUE
-					break;
+			/*case 7: cin >> s_roll;
+					s = new Student("", s_roll);	
+					cout << AVL<Student>::closest(root, *s) << endl;		//CLOSEST ELEMENT TO SOME VALUE
+					break;*/
 			case 8: cin >> inp1;
-					AVL<int>::k_largest(root, &cnt, inp1);		//K-th LARGEST ELEMENT
+					AVL<Student>::k_largest(root, &cnt, inp1);		//K-th LARGEST ELEMENT
 					break;
 			case 9: cin >> x >> y;
-					cout << AVL<int>::count_range(root, x, y) << endl;	//COUNT ELEMENTS IN A GIVEN RANGE
+					s = new Student("", x);
+					s2 = new Student("", y);		
+					cout << AVL<Student>::count_range(root, *s, *s2) << endl;	//COUNT ELEMENTS IN A GIVEN RANGE
 					break;
 			case 0: exit(1);
 			default: cout << "Enter Values b/w 0 to 9" << endl;
 					break;
 
 		}
-		AVL<int>::print_inorder(root);
+		AVL<Student>::print_inorder(root);
 		cout << endl;
 	}
 	/**root = AVL<int>::insert_node(root, 5);
