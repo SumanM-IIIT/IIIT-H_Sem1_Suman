@@ -16,6 +16,7 @@ using namespace std;
 #define BACKSLASH 92
 #define ESC 27
 int maxi_rows;
+static int search_count;
 
 
 void cursor_movement(int, int);
@@ -41,6 +42,7 @@ void init_cmd_arr(string);
 void copy(string, string);
 //void move(string, string);
 void delete_dir(string);
+void search(string, string);
 
 
 static struct termios initial_t, new_t;
@@ -93,7 +95,7 @@ void print_all() {
 	for(int i = 0; i < win.ws_col; i++) {
 		cout << "-";
 	}
-	cursor_movement(first, 51);
+	cursor_movement(first, 0);
 }
 
 void open_file_dir() {
@@ -114,13 +116,13 @@ void open_file_dir() {
 		int status;
 		pid_t result = waitpid(pid, &status, WNOHANG);
 		if(pid == 0) {
-			off_keys();
-			execl("/usr/bin/vi", "vi", "-e", dir_file, NULL);
+			//off_keys();
+			execl("/usr/bin/gedit", "gedit", dir_file, NULL);
 			//init_keys();
 			//exit(1);
 		}
-		if(result != 0 || result != -1)
-			init_keys();
+		//if(result != 0 || result != -1)
+		//	init_keys();
 	}
 }
 
@@ -155,7 +157,7 @@ void curr_dir_path(char const* dir_path) {
 		cursor = 1;//min(int(dir_file_arr.size()), maxi_rows);
 		last = min(int(dir_file_arr.size()), maxi_rows);
 		print_all();
-		cursor_movement(cursor, 51);
+		cursor_movement(cursor, 0);
 	}
 	else {
 		//cout << "No such directory: " << dir_path;
@@ -196,7 +198,7 @@ void cursor_movement(int x, int y) {
 void go_up() {
 	if(cursor > 1) {
 		cursor--;
-		cursor_movement(cursor, 51);
+		cursor_movement(cursor, 0);
 		return;
 	}
 	if(first == 0)
@@ -204,13 +206,13 @@ void go_up() {
 	first--;
 	last--;
 	print_all();
-	cursor_movement(cursor, 51);
+	cursor_movement(cursor, 0);
 }
 
 void go_down() {
 	if(cursor < dir_file_arr.size() && cursor < maxi_rows) {
 		cursor++;
-		cursor_movement(cursor, 51);
+		cursor_movement(cursor, 0);
 		return;
 	}
 	if(last == dir_file_arr.size())
@@ -218,7 +220,7 @@ void go_down() {
 	first++;
 	last++;
 	print_all();
-	cursor_movement(cursor, 51);
+	cursor_movement(cursor, 0);
 }
 
 int keyboard_press() {
@@ -272,22 +274,22 @@ void go_up_level() {
 }
 
 void clear_cmd_prompt() {
-	cursor_movement(inp_line, 51);
+	cursor_movement(inp_line, 0);
 	int i, j;
 	for(i = inp_line; i < win.ws_row; i++) {
 		for(j = 0; j < win.ws_col; j++) {
 			cout << " ";
 		}
 	}
-	cursor_movement(inp_line, 51);
+	cursor_movement(inp_line, 0);
 }
 void clear_input_line() {
-	cursor_movement(inp_line, 51);
+	cursor_movement(inp_line, 0);
 	int i, j;
 	for(j = 0; j < win.ws_col; j++) {
 		cout << " ";
 	}
-	cursor_movement(inp_line, 51);
+	cursor_movement(inp_line, 0);
 }
 
 void init_cmd_arr(string cmd) {
@@ -312,30 +314,82 @@ void init_cmd_arr(string cmd) {
 	}
 }
 
+void copy_dir(string current_dir, string dest_dir) {
+	DIR *dp;
+	struct dirent *entry;
+	struct stat meta;
+
+	cursor_movement(status_line, 0);
+	if(!(dp = opendir(current_dir.c_str()))) { 
+		cout << "INVALID DIRECTORY PATH: " << current_dir.c_str();
+		return;
+	}
+	chdir(current_dir.c_str());
+	cout << "Hi" << endl;
+
+	while((entry = readdir(dp))) {
+		lstat(entry->d_name,&meta);
+		cout << "Hi2" << endl;
+		//cout << 0;
+		if(S_ISDIR(meta.st_mode)) {
+			cout << "Hi3" << endl;
+			string a(entry->d_name);
+			if(a/*entry->d_name*/ == "." || a/*entry->d_name*/ == "..") 
+				continue;
+			mkdir((dest_dir + "/" + a/*entry->d_name*/).c_str(), S_IRUSR|S_IWUSR|S_IXUSR);
+			cout << "Hi4: " << dest_dir + "/" + a << endl;
+			copy_dir(current_dir + "/" + a/*entry->d_name*/, dest_dir + "/" + a/*entry->d_name*/);
+			cout << "Hi5" << current_dir + "/" + a << endl;
+		}
+		else
+			copy(entry->d_name, dest_dir);
+	}
+	chdir("..");
+	closedir(dp);
+}
+
 void copy(string file, string position) {
 	char word[2048];
 	string dest = position + "/" + file;
 	int read_c, open_in, open_out;
-	
-	open_in = open(file.c_str(), O_RDONLY);
-	open_out = open(dest.c_str(), O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
 
-	read_c = read(open_in, word, sizeof(word));
-	while(read_c > 0) {
-		write(open_out, word, read_c);
+	struct stat meta;
+	stat(file.c_str(), &meta);
+	
+	if(!S_ISDIR(meta.st_mode)) {
+		//cursor_movement(status_line, 0);
+		//cout << "Inside if";
+		open_in = open(file.c_str(), O_RDONLY);
+		open_out = open(dest.c_str(), O_WRONLY|O_CREAT, S_IRUSR|S_IWUSR);
+
 		read_c = read(open_in, word, sizeof(word));
+		while(read_c > 0) {
+			write(open_out, word, read_c);
+			read_c = read(open_in, word, sizeof(word));
+		}
 	}
+	else {
+		cursor_movement(status_line, 0);
+		//cout << "Inside else: " << dest;
+		mkdir(dest.c_str(), S_IRUSR|S_IWUSR|S_IXUSR);
+		string curr(curr_dir);
+		copy_dir(curr + "/" + file, dest);
+	}
+	
+	chmod(dest.c_str(), meta.st_mode);
+	//cursor_movement(status_line, 0);
+	//cout << meta.st_mode;
 }
 
-vector<string> temp_path;
+//vector<string> temp_path;
 void delete_dir(string dir_path) {
 	DIR *dir;
 	struct dirent *entry;
 	struct stat meta;
 	dir = opendir(dir_path.c_str());
 	if(!dir) {
-		cursor_movement(status_line, 51);
-		cout << "Current Directory NOT found !!: " << dir_path;
+		cursor_movement(status_line, 0);
+		//cout << "Current Directory NOT found !!: " << dir_path << endl;
 		return;
 	}
 	chdir(dir_path.c_str());
@@ -345,60 +399,82 @@ void delete_dir(string dir_path) {
 		//cout << "Inside delete_dir: " << entry->d_name;
 	
 		lstat(entry->d_name, &meta);
+		string a(entry->d_name);
 		if(S_ISDIR(meta.st_mode)) {
-			if(entry->d_name == "." || entry->d_name == "..") {
+			if(a/*entry->d_name*/ == "." || a/*entry->d_name*/ == "..") {
 				continue;
 			}
-			delete_dir(entry->d_name);
-			temp_path.push_back(entry->d_name);
-			//remove(entry->d_name);
+			delete_dir(dir_path + "/" + a/*entry->d_name*/);
+			//cout << dir_path + "/" + a/*entry->d_name*/ << endl;
+			//temp_path.push_back(entry->d_name);
+			remove((dir_path + "/" + a/*entry->d_name*/).c_str());
 		}
 		else {
-			//remove(entry->d_name);
-			temp_path.push_back(entry->d_name);
+			//cout << dir_path + "/" + a/*entry->d_name*/ << endl;
+			remove((dir_path + "/" + a/*entry->d_name*/).c_str());
+			//temp_path.push_back(entry->d_name);
 		}
 		//entry = readdir(dir);
 	}
 	chdir("..");
+	//remove(dir_path);
 	closedir(dir);
 }
 
-int search(string file_name, string current_dir) {
-	int res = 0;
+void search(string file_name, string current_dir) {
+	//int res = 0;
 	DIR *dir;
 	struct dirent *entry;
 	struct stat meta;
 	dir = opendir(current_dir.c_str());
 	if(!dir) {
-		cursor_movement(status_line, 51);
-		cout << "Current Directory NOT found !!";
-		return 0;
+		cursor_movement(status_line, 0);
+		//cout << "Current Directory NOT found: " << current_dir << endl;
+		return;
 	}
 	//entry = readdir(dir);
 	chdir(current_dir.c_str());
 	while((entry = readdir(dir)) != NULL) {
 		lstat(entry->d_name, &meta);
 
+		//string a(file_name);
+		string b(entry->d_name);
+		//string c(current_dir);
+		//cout << current_dir + "/" + b << endl;
 		if(S_ISDIR(meta.st_mode)) {
-			if(entry->d_name == "." || entry->d_name == "..") {
+			if(b/*entry->d_name*/ == "." || b/*entry->d_name*/ == "..") {
 				continue;
 			}
-			if(file_name.c_str() == entry->d_name) {
-				res = 1;
-				break;
+			if(file_name == b/*entry->d_name*/) {
+				clear_cmd_prompt();
+				cursor_movement(op_line, 0);
+				cout << "True";
+				search_count++;
+				return;
+				//break;
 			}
-			res = search(file_name, entry->d_name);
+			search(file_name, (current_dir + "/" + b)/*entry->d_name*/);
 		}
 		else {
-			if(file_name.c_str() == entry->d_name) {
-				res = 1;
-				break;
+			if(file_name == b/*entry->d_name*/) {
+				clear_cmd_prompt();
+				cursor_movement(op_line, 0);
+				cout << "True";
+				search_count++;
+				return;
+				//break;
 			}
 		}
 		//entry = readdir(dir);
 	}
 	chdir("..");
-	return res;
+	closedir(dir);
+	if(search_count == 0) {
+		clear_cmd_prompt();
+		cursor_movement(op_line, 0);
+		cout << "False";
+	}
+	//return res;
 }
 
 void command_mode() {
@@ -455,8 +531,8 @@ void command_mode() {
 	  		break;*/
 		if(cmd_str_arr[0] == "copy") {
 			int len = cmd_str_arr.size();
-			string file, pos;
-			if(cmd_str_arr[len - 1][0] == '~') {
+			string file, position;
+			/*if(cmd_str_arr[len - 1][0] == '~') {
 				pos = root + cmd_str_arr[len - 1].substr(1);
 			}
 			else if(cmd_str_arr[len - 1][0] == '/') {
@@ -467,14 +543,28 @@ void command_mode() {
 				cursor_movement(status_line, 0);
 				cout << "INVALID PATH !!";
 				continue;
+			}*/
+			if(cmd_str_arr[len - 1][0] == '~') {
+				position = root + cmd_str_arr[len - 1].substr(1);
+			}
+			else if(cmd_str_arr[len - 1][0] == '/') {
+				position = curr_dir + cmd_str_arr[len - 1];
+			}
+			else if(cmd_str_arr[len - 1][0] == '.') 
+				position = curr_dir;
+			else {
+				clear_cmd_prompt();
+				cursor_movement(status_line, 0);
+				cout << "INVALID PATH GIVEN !!";
+				continue;
 			}
 			for(int i = 1; i < len - 1; i++) {
 				file = cmd_str_arr[i];
-				copy(file, pos);
+				copy(file, position);
 			}
-			clear_cmd_prompt();
+			//clear_cmd_prompt();
 			cursor_movement(op_line, 0);
-			cout << "Copied the desired files to the directory: " << pos;
+			cout << "Copied the desired files to the directory: " << position;
 		}
 		else if(cmd_str_arr[0] == "move") {
 			int flag, len = cmd_str_arr.size();
@@ -491,10 +581,18 @@ void command_mode() {
 				cout << "INVALID PATH !!";
 				continue;
 			}
+			struct stat meta;
 			for(int i = 1; i < len - 1; i++) {
 				file = cmd_str_arr[i];
 				copy(file, pos);
-				flag = remove((string(curr_dir) + '/' + file).c_str());
+
+				const char* temp = file.c_str();
+				lstat(temp, &meta);
+				/*if(S_ISDIR(meta.st_mode)) {
+					delete_dir(pos);
+				}
+				else*/
+				/*flag = */remove((string(curr_dir) + "/" + file).c_str());
 			}
 			clear_cmd_prompt();
 			cursor_movement(op_line, 0);
@@ -522,7 +620,7 @@ void command_mode() {
 				position = root + cmd_str_arr[len - 1].substr(1);
 			}
 			else if(cmd_str_arr[len - 1][0] == '/') {
-				position = root + cmd_str_arr[len - 1];
+				position = curr_dir + cmd_str_arr[len - 1];
 			}
 			else if(cmd_str_arr[len - 1][0] == '.') 
 				position = curr_dir;
@@ -557,7 +655,7 @@ void command_mode() {
 			else {
 				clear_cmd_prompt();
 				cursor_movement(status_line, 0);
-				cout << "INVALID PATH !!";
+				cout << "INVALID PATH: " << cmd_str_arr[1];
 				continue;
 			}
 			clear_cmd_prompt();
@@ -568,7 +666,7 @@ void command_mode() {
 			}
 			else {
 				cursor_movement(status_line, 0);
-				cout << "remove() ERROR !!";		
+				cout << "remove() ERROR: " << path_file;		
 			}
 		}
 		else if(cmd_str_arr[0] == "delete_dir") {
@@ -586,41 +684,46 @@ void command_mode() {
 				continue;
 			}
 			clear_cmd_prompt();
+			cursor_movement(status_line, 0);
 			delete_dir(path_dir);
-			int flag = 0;//remove(path_dir.c_str());
-			if(flag == 0) { 
-				cursor_movement(op_line, 0);
-				//cout << "DELETED the desired directory SUCCESSFULLY !!: " << path_dir;	
-				cout << temp_path.size() << path_dir;
+			remove(path_dir.c_str());
+			//int flag = 0;//remove(path_dir.c_str());
+			//if(flag == 0) { 
+			cursor_movement(op_line, 0);
+			cout << "DELETED the desired directory SUCCESSFULLY !!: " << path_dir;	
+			//cout << temp_path.size() << path_dir;
 				/*for(int i = 0; i < temp_path.size(); i++) {
 					cout << temp_path[i] << endl;
 				}*/
-			}
-			else {
-				cursor_movement(status_line, 0);
-				cout << "remove() ERROR !!";		
-			}
+			//}
+			//else {
+			//	cursor_movement(status_line, 0);
+			//	cout << "remove() ERROR !!";		
+			//}
 		}
 		else if(cmd_str_arr[0] == "goto") {
 			if(cmd_str_arr[1][0] == '/') {
-				init_keys();
+				//init_keys();
+				clear_cmd_prompt();
 				curr_dir_path((root + cmd_str_arr[1]).c_str());
-				cursor_movement(cursor, 0);
-				break;
+				//cursor_movement(inp_line, 0);
+				//break;
 			}	
 		}
 		else if(cmd_str_arr[0] == "search") {
+			search_count = 0;
 			string name = cmd_str_arr[1];
-			search_stack = stack<string>();
-			int res = search(name, curr_dir);
+			//search_stack = stack<string>();
+			string a(curr_dir);
+			search(name, a/*curr_dir*/);
 			
-			clear_cmd_prompt();
+			/*clear_cmd_prompt();
 			cursor_movement(op_line, 0);
 			if(res == 1) {
 				cout << "True";
 			}
 			else 
-				cout << "False";
+				cout << "False";*/
 		}
 		else if(cmd_str_arr[0] == "exit") {
 			init_keys();
