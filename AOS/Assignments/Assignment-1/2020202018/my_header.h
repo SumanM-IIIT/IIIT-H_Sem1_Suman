@@ -319,27 +319,27 @@ void copy_dir(string current_dir, string dest_dir) {
 	struct dirent *entry;
 	struct stat meta;
 
-	cursor_movement(status_line, 0);
+	//cursor_movement(status_line, 0);
 	if(!(dp = opendir(current_dir.c_str()))) { 
-		cout << "INVALID DIRECTORY PATH: " << current_dir.c_str();
+		//cout << "INVALID DIRECTORY PATH: " << current_dir.c_str();
 		return;
 	}
 	chdir(current_dir.c_str());
-	cout << "Hi" << endl;
+	//cout << "Hi" << endl;
 
 	while((entry = readdir(dp))) {
 		lstat(entry->d_name,&meta);
-		cout << "Hi2" << endl;
+		//cout << "Hi2" << endl;
 		//cout << 0;
 		if(S_ISDIR(meta.st_mode)) {
-			cout << "Hi3" << endl;
+			//cout << "Hi3" << endl;
 			string a(entry->d_name);
 			if(a/*entry->d_name*/ == "." || a/*entry->d_name*/ == "..") 
 				continue;
 			mkdir((dest_dir + "/" + a/*entry->d_name*/).c_str(), S_IRUSR|S_IWUSR|S_IXUSR);
-			cout << "Hi4: " << dest_dir + "/" + a << endl;
+			//cout << "Hi4: " << dest_dir + "/" + a << endl;
 			copy_dir(current_dir + "/" + a/*entry->d_name*/, dest_dir + "/" + a/*entry->d_name*/);
-			cout << "Hi5" << current_dir + "/" + a << endl;
+			//cout << "Hi5" << current_dir + "/" + a << endl;
 		}
 		else
 			copy(entry->d_name, dest_dir);
@@ -588,10 +588,10 @@ void command_mode() {
 
 				const char* temp = file.c_str();
 				lstat(temp, &meta);
-				/*if(S_ISDIR(meta.st_mode)) {
-					delete_dir(pos);
+				if(S_ISDIR(meta.st_mode)) {
+					delete_dir(string(curr_dir) + "/" + file);
 				}
-				else*/
+				//else
 				/*flag = */remove((string(curr_dir) + "/" + file).c_str());
 			}
 			clear_cmd_prompt();
