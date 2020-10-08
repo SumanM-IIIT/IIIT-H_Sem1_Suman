@@ -11,6 +11,7 @@
 #include <time.h>
 #include <iomanip>
 #include <sys/wait.h>
+#include <signal.h>
 using namespace std;
 
 #define BACKSLASH 92
@@ -140,6 +141,17 @@ void root_path(char const* path) {
 	status_line = win.ws_row - 1;
 	//inp_line = maxi_rows - 1;
 }
+void win_size_handler(int sig) {
+	if(sig == SIGWINCH) {
+		ioctl(STDOUT_FILENO, TIOCGWINSZ, &win);
+		maxi_rows = win.ws_row - 10;
+		last = first + maxi_rows;
+		start_line = maxi_rows + 1;
+		inp_line = start_line + 2;
+		op_line = inp_line + 1;
+		status_line = win.ws_row - 1;
+	}
+}
 
 void curr_dir_path(char const* dir_path) {
 	DIR *dir;
@@ -159,6 +171,7 @@ void curr_dir_path(char const* dir_path) {
 		first = 0;
 		cursor = 1;//min(int(dir_file_arr.size()), maxi_rows);
 		last = min(int(dir_file_arr.size()), maxi_rows);
+		signal(SIGWINCH, win_size_handler);
 		print_all();
 		cursor_movement(cursor, 0);
 	}
@@ -208,6 +221,7 @@ void go_up() {
 		return;
 	first--;
 	last--;
+	signal(SIGWINCH, win_size_handler);
 	print_all();
 	cursor_movement(cursor, 0);
 }
@@ -222,6 +236,7 @@ void go_down() {
 		return;
 	first++;
 	last++;
+	signal(SIGWINCH, win_size_handler);
 	print_all();
 	cursor_movement(cursor, 0);
 }
@@ -372,9 +387,10 @@ void copy(string file, string position) {
 		}
 	}
 	else {
-		cursor_movement(status_line, 0);
+		//cursor_movement(status_line, 0);
 		//cout << "Inside else: " << dest;
 		mkdir(dest.c_str(), S_IRUSR|S_IWUSR|S_IXUSR);
+		//chmod(dest.c_str(), meta.st_mode);
 		string curr(curr_dir);
 		copy_dir(curr + "/" + file, dest);
 	}
@@ -483,15 +499,19 @@ void search(string file_name, string current_dir) {
 void command_mode() {
 	//off_keys();
 	clear_cmd_prompt();
+	signal(SIGWINCH, win_size_handler);
+	//print_all();
 	string cmd;
 	char c;
 	int flag = 0;
 	while(1) {
+		signal(SIGWINCH, win_size_handler);
+		//print_all();
 		clear_input_line();
 		cursor_movement(inp_line, 1);
 		cout << "~:";
 		cursor_movement(inp_line, 3);
-		
+		cmd = "";
 			
 		//getline(cin>>ws, cmd);
 		while(1) {
@@ -571,7 +591,7 @@ void command_mode() {
 				position = root + cmd_str_arr[len - 1].substr(1);
 			}
 			else if(cmd_str_arr[len - 1][0] == '/') {
-				position = curr_dir + cmd_str_arr[len - 1];
+				position = root/*curr_dir*/ + cmd_str_arr[len - 1];
 			}
 			else if(cmd_str_arr[len - 1][0] == '.') 
 				position = curr_dir;
@@ -596,7 +616,7 @@ void command_mode() {
 				pos = root + cmd_str_arr[len - 1].substr(1);
 			}
 			else if(cmd_str_arr[len - 1][0] == '/') {
-				pos = curr_dir + cmd_str_arr[len - 1];
+				pos = root/*curr_dir*/ + cmd_str_arr[len - 1];
 			}
 			else {
 				clear_cmd_prompt();
@@ -643,7 +663,7 @@ void command_mode() {
 				position = root + cmd_str_arr[len - 1].substr(1);
 			}
 			else if(cmd_str_arr[len - 1][0] == '/') {
-				position = curr_dir + cmd_str_arr[len - 1];
+				position = root/*curr_dir*/ + cmd_str_arr[len - 1];
 			}
 			else if(cmd_str_arr[len - 1][0] == '.') 
 				position = curr_dir;
@@ -673,7 +693,7 @@ void command_mode() {
 				path_file = root + cmd_str_arr[1].substr(1);
 			}
 			else if(cmd_str_arr[1][0] == '/') {
-				path_file = curr_dir + cmd_str_arr[1];
+				path_file = root/*curr_dir*/ + cmd_str_arr[1];
 			}
 			else {
 				clear_cmd_prompt();
@@ -698,7 +718,7 @@ void command_mode() {
 				path_dir = root + cmd_str_arr[1].substr(1);
 			}
 			else if(cmd_str_arr[1][0] == '/') {
-				path_dir = curr_dir + cmd_str_arr[1];
+				path_dir = root/*curr_dir*/ + cmd_str_arr[1];
 			}
 			else {
 				clear_cmd_prompt();
