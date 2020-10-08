@@ -15,6 +15,9 @@ using namespace std;
 
 #define BACKSLASH 92
 #define ESC 27
+#define BACKSPACE 127
+#define ENTER 10
+
 int maxi_rows;
 static int search_count;
 
@@ -478,7 +481,7 @@ void search(string file_name, string current_dir) {
 }
 
 void command_mode() {
-	off_keys();
+	//off_keys();
 	clear_cmd_prompt();
 	string cmd;
 	char c;
@@ -490,7 +493,27 @@ void command_mode() {
 		cursor_movement(inp_line, 3);
 		
 			
-		getline(cin>>ws, cmd);
+		//getline(cin>>ws, cmd);
+		while(1) {
+	        c = getchar();
+	        if(c == ESC) {
+	        	curr_dir_path(curr_dir);
+				cursor_movement(cursor, 0);
+				return;
+	        }
+	        if(c == ENTER) {
+	        	break;
+	        }
+	        if(c == BACKSPACE) {
+	        	//c = '\b';
+	        	cout << "\b \b";
+	        	cmd.pop_back();
+	        }
+	        else {
+		        cmd += c;
+		        cout << c;
+		    }        
+	    }
 		/*cmd = "";
 		c = getchar();
 		while(c != '\n') {
@@ -725,11 +748,11 @@ void command_mode() {
 			else 
 				cout << "False";*/
 		}
-		else if(cmd_str_arr[0] == "exit") {
+		/*else if(cmd_str_arr[0] == "exit") {
 			init_keys();
 			curr_dir_path(curr_dir);
 			cursor_movement(cursor, 0);
 			break;
-		}
+		}*/
 	}
 }
