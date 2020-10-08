@@ -113,11 +113,11 @@ void open_file_dir() {
 	}
 	else {
 		pid_t pid = fork();
-		int status;
-		pid_t result = waitpid(pid, &status, WNOHANG);
+		//int status;
+		//pid_t result = waitpid(pid, &status, WNOHANG);
 		if(pid == 0) {
 			//off_keys();
-			execl("/usr/bin/gedit", "gedit", dir_file, NULL);
+			execl("/usr/bin/xdg-open", "xdg-open", dir_file, NULL);
 			//init_keys();
 			//exit(1);
 		}

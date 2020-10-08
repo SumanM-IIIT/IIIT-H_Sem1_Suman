@@ -1,5 +1,4 @@
 #include<iostream>
-#include<sstream>
 using namespace std;
 
 typedef long long ll;
@@ -161,12 +160,8 @@ public:
 			int tmp_val = 0;
 			string s;
 			V def;
-			if(typeid(s).hash_code() == typeid(V).hash_code()) {
-				//def = V("");///(*this).def;//*((V*)malloc(sizeof(V)));
-				stringstream ss;
-				ss << tmp_val;
-				ss >> def;
-			}	
+			if(typeid(s).hash_code() == typeid(V).hash_code()) 
+				def = V(to_string(tmp_val));///(*this).def;//*((V*)malloc(sizeof(V)));
 			else
 				def = tmp_val;
 			//return def;
