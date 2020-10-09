@@ -1,4 +1,5 @@
 #include<iostream>
+#include<climits>
 using namespace std;
 
 class Student {
@@ -32,6 +33,9 @@ public:
   	bool operator<=(const Student &s) const {  
         return rollno <= s.rollno; 
   	}
+  	bool operator-(const Student &s) const {  
+        return rollno - s.rollno; 
+  	}
   	friend ostream& operator<<(ostream& o, const Student &s) {
 		o << "(" << s.name << ", Roll: " << s.rollno << ")";
 		return o;
@@ -44,117 +48,66 @@ public:
         return a.name == b.name;
     } 
 };*/
-
+typedef long long ll;
 template <typename T>
 class AVL {
 public:
-	AVL<T> *left, *right;
-	T value;
-	int height = 0, count = 0;
-	AVL(): left(NULL), right(NULL) {
-		left = NULL;
-		right = NULL;
+	class AVL_node {
+	public:
+		T value;
+		ll height, cnt;
+		AVL_node *left, *right;
+	};
+	AVL_node* root;
+	AVL() {
+		root = NULL;
 	}
 
-	AVL(T value): value(value), left(NULL), right(NULL) {
+	AVL(T value) {
+		root->value = value;
+		root->left = root->right = NULL;
 	}
-
-	AVL(T value, AVL<T> *left, AVL<T> *right): value(value), left(left), right(right) {
-	}
-
-	static AVL<T>* insert_node(AVL<T>*, T);
-	static AVL<T>* delete_node(AVL<T>*, T);
-	static int balance(AVL<T>*);
-	static AVL<T>* RR(AVL<T>*);
-	static AVL<T>* RL(AVL<T>*);
-	static AVL<T>* LL(AVL<T>*);
-	static AVL<T>* LR(AVL<T>*);
-	static AVL<T>* left_rotation(AVL<T>*);
-	static AVL<T>* right_rotation(AVL<T>*);
-	static int avl_height(AVL<T>*);
-	static void print_inorder(AVL<T>*);
-	static int count_elements(AVL<T>* node, T x, T y);
-	static void k_largest(AVL<T>* node, int *cnt, int k);
-	static AVL<T>* search_node(AVL<T>*, T);
-	static int count_range(AVL<T>*, T, T);
-	static void closest_main(AVL<T>*, T, T&, T&);
-	static T closest(AVL<T>*, T);
-	static AVL<T>* lower_bound(AVL<T>*, T);
-	static AVL<T>* upper_bound(AVL<T>*, T);
-	//static int count_occ(AVL<T>*, T);
-
-	//static Node<T> *find(Node<T> *tree, T value);
-	//static void walk(const Node<T> *tree);
-};
-
-template <typename T> AVL<T>* AVL<T>::insert_node(AVL<T>* node, T val) {
-	if(!node) {
-		node = (AVL<T>*)malloc(sizeof(AVL<T>));
-		node->value = val;
-		node->count = 1;
-		node->left = node->right = NULL;
-	}
-	else if(val > node->value) {
-		node->right = insert_node(node->right, val);
-		if(balance(node) < -1) {
-			if(val > node->right->value) {
-				node = RR(node);
-			}
-			else {
-				node = RL(node);
+	AVL_node* avl_insert(AVL_node* node, T value) {
+		if(!node) {
+			node = (AVL_node*)malloc(sizeof(AVL_node));
+			node->value = value;
+			node->cnt = 1;
+			node->left = node->right = NULL;
+		}
+		else if(value > node->value) {
+			node->right = avl_insert(node->right, value);
+			if(balance(node) < -1) {
+				if(value > node->right->value) {
+					node = RR(node);
+				}
+				else {
+					node = RL(node);
+				}
 			}
 		}
-		//node->height = avl_height(node);
-	}
-	else if(val < node->value) {
-		node->left = insert_node(node->left, val);
-		if(balance(node) > 1) {
-			if(val < node->left->value)
-				node = LL(node);
-			else
-				node = LR(node);
+		else if(value < node->value) {
+			node->left = avl_insert(node->left, value);
+			if(balance(node) > 1) {
+				if(value < node->left->value)
+					node = LL(node);
+				else
+					node = LR(node);
+			}
 		}
-		//node->height = avl_height(node);
+		else 
+			node->cnt++;
+		node->height = avl_height(node);
+		return node;
 	}
-	else {
-		node->count++;
+	void avl_insert(T value) {
+		root = avl_insert(root, value);
 	}
-	node->height = avl_height(node);
-	return node;
-}
-template <typename T> AVL<T>* AVL<T>::delete_node(AVL<T>* node, T val) {
-	AVL<T> *tmp;	
-	if(!node)
-		return NULL;
-	else if(val > node->value) {
-		node->right = delete_node(node->right, val);
-		if(balance(node) > 1) {
-			if(balance(node->left) >= 0)
-				node = LL(node);
-			else
-				node = LR(node);
-		}
-	}
-	else if(val < node->value) {
-		node->left = delete_node(node->left, val);
-		if(balance(node) < -1) {
-			if(balance(node->right) <= 0)
-				node = RR(node);
-			else
-				node = RL(node);
-		}
-	}
-	else {
-		if(node->count > 1) {
-			node->count--;
-			return node;
-		}
-		if(node->right) {
-			tmp = node->right;
-			while(tmp->left)
-				tmp = tmp->left;
-			node->value = tmp->value;
-			node->right = delete_node(node->right, tmp->value);
+	AVL_node* avl_delete(AVL_node* node, T val) {
+		AVL_node *tmp;	
+		if(!node)
+			return NULL;
+		else if(val > node->value) {
+			node->right = avl_delete(node->right, val);
 			if(balance(node) > 1) {
 				if(balance(node->left) >= 0)
 					node = LL(node);
@@ -162,315 +115,352 @@ template <typename T> AVL<T>* AVL<T>::delete_node(AVL<T>* node, T val) {
 					node = LR(node);
 			}
 		}
-		else
-			return node->left;
-	}
-	node->height = avl_height(node);
-	return node;
-}
-template<typename T> int AVL<T>::balance(AVL<T>* node) {
-	int left_h, right_h;
-	if(!node)
-		return 0;
-	if(!node->left)
-		left_h = 0;
-	else
-		left_h = 1 + node->left->height;
-	if(!node->right)
-		right_h = 0;
-	else
-		right_h = 1 + node->right->height;
-	return (left_h - right_h);
-}
-template<typename T> AVL<T>* AVL<T>::RR(AVL<T>* node) {
-	node = left_rotation(node);
-	return node;	
-}
-template<typename T> AVL<T>* AVL<T>::RL(AVL<T>* node) {
-	node->right = right_rotation(node->right);
-	node = left_rotation(node);
-	return node;
-}
-template<typename T> AVL<T>* AVL<T>::LL(AVL<T>* node) {
-	node = right_rotation(node);
-	return node;
-}
-template<typename T> AVL<T>* AVL<T>::LR(AVL<T>* node) {
-	node->left = left_rotation(node->left);
-	node = right_rotation(node);
-	return node;
-}
-template<typename T> AVL<T>* AVL<T>::left_rotation(AVL<T>* node) {
-	AVL<T> *tmp;
-	tmp = node->right;
-	node->right = tmp->left;
-	tmp->left = node;
-	node->height = avl_height(node);
-	tmp->height = avl_height(tmp);	
-	return tmp;
-}
-template<typename T> AVL<T>* AVL<T>::right_rotation(AVL<T>* node) {
-	AVL<T>* tmp;
-	tmp = node->left;
-	node->left = tmp->right;
-	tmp->right = node;
-	node->height = avl_height(node);
-	tmp->height = avl_height(tmp);
-	return tmp;
-}
-template<typename T> int AVL<T>::avl_height(AVL<T>* node) {
-	int left_h,right_h;
-	if(!node)
-		return 0;
-	if(!node->left)
-		left_h = 0;
-	else
-		left_h = 1 + node->left->height;	
-	if(!node->right)
-		right_h = 0;
-	else
-		right_h = 1 + node->right->height;
-	return max(left_h, right_h);
-}
-template<typename T> void AVL<T>::print_inorder(AVL<T>* node) {
-	if(node) {
-		print_inorder(node->left);
-		if(node->count > 1) {
-			int cnt = node->count;
-			for(int i = 0; i < cnt; i++) 
-				cout << node->value << " ";	
+		else if(val < node->value) {
+			node->left = avl_delete(node->left, val);
+			if(balance(node) < -1) {
+				if(balance(node->right) <= 0)
+					node = RR(node);
+				else
+					node = RL(node);
+			}
 		}
-		else
-			cout << node->value << " ";
-		print_inorder(node->right);
+		else {
+			if(node->cnt > 1) {
+				node->cnt--;
+				return node;
+			}
+			if(node->right) {
+				tmp = node->right;
+				while(tmp->left)
+					tmp = tmp->left;
+				node->value = tmp->value;
+				node->right = avl_delete(node->right, tmp->value);
+				if(balance(node) > 1) {
+					if(balance(node->left) >= 0)
+						node = LL(node);
+					else
+						node = LR(node);
+				}
+			}
+			else
+				return node->left;
+		}
+		node->height = avl_height(node);
+		return node;
 	}
-}
-/*template<typename T> int AVL<T>::count_occ(AVL<T>* node, T val) {
-	int count = 0;
-
-	return count;
-}*/
-template<typename T> AVL<T>* AVL<T>::search_node(AVL<T>* node, T val) {
-	if (!node || node->value == val) 
-       	return node; 
-    if (node->value > val) 
-       	return search_node(node->left, val);
-    else 
-		return search_node(node->right, val); 
-}
-template<typename T> void AVL<T>::k_largest(AVL<T>* node, int *cnt, int k) {
-	if(node) {
-		k_largest(node->right, cnt, k);
-		if(node->count > 1) {
-			int dem = node->count;
-			for(int i = 0; i < dem; i++) {
+	void avl_delete(T value) {
+		root = avl_delete(root, value);
+	}
+	ll avl_height(AVL_node* node) {
+		ll left_h, right_h;
+		if(!node)
+			return 0;
+		if(!node->left)
+			left_h = 0;
+		else
+			left_h = 1 + node->left->height;	
+		if(!node->right)
+			right_h = 0;
+		else
+			right_h = 1 + node->right->height;
+		return max(left_h, right_h);
+	}
+	ll balance(AVL_node* node) {
+		ll left_h, right_h;
+		if(!node)
+			return 0;
+		if(!node->left)
+			left_h = 0;
+		else
+			left_h = 1 + node->left->height;
+		if(!node->right)
+			right_h = 0;
+		else
+			right_h = 1 + node->right->height;
+		return (left_h - right_h);
+	}
+	AVL_node* RR(AVL_node* node) {
+		node = left_rotation(node);
+		return node;	
+	}
+	AVL_node* RL(AVL_node* node) {
+		node->right = right_rotation(node->right);
+		node = left_rotation(node);
+		return node;
+	}
+	AVL_node* LL(AVL_node* node) {
+		node = right_rotation(node);
+		return node;
+	}
+	AVL_node* LR(AVL_node* node) {
+		node->left = left_rotation(node->left);
+		node = right_rotation(node);
+		return node;
+	}
+	AVL_node* left_rotation(AVL_node* node) {
+		AVL_node* tmp;
+		tmp = node->right;
+		node->right = tmp->left;
+		tmp->left = node;
+		node->height = avl_height(node);
+		tmp->height = avl_height(tmp);	
+		return tmp;
+	}
+	AVL_node* right_rotation(AVL_node* node) {
+		AVL_node* tmp;
+		tmp = node->left;
+		node->left = tmp->right;
+		tmp->right = node;
+		node->height = avl_height(node);
+		tmp->height = avl_height(tmp);
+		return tmp;
+	}
+	void print_avl_inorder(AVL_node* root) {
+		if(root) {
+			print_avl_inorder(root->left);
+			if(root->cnt > 1) {
+				int cnt = root->cnt;
+				for(int i = 0; i < cnt; i++) 
+					cout << root->value << " ";	
+			}
+			else
+				cout << root->value << " ";
+			print_avl_inorder(root->right);
+		}
+	}
+	void print_avl_inorder() {
+		print_avl_inorder(root);
+	}
+	AVL_node* avl_search(AVL_node* node, T val) {
+		if (!node || node->value == val) 
+	       	return node; 
+	    if (node->value > val) 
+	       	return avl_search(node->left, val);
+	    else 
+			return avl_search(node->right, val); 
+	}
+	bool avl_search(T val) {
+		AVL_node* tmp = avl_search(root, val);
+		if(tmp)
+			return true;
+		return false;
+	}
+	ll avl_count_occur(T val) {
+		AVL_node* tmp = avl_search(root, val);
+		if(tmp)
+			return tmp->cnt;
+		return 0;
+	}
+	ll count_range(AVL_node* node, T x, T y) {
+		if(!node)
+			return 0;
+		if(node->value == x && node->value == y)
+			return node->cnt;
+		if(node->value < x)
+			return count_range(node->right, x, y);
+		else if(node->value > y)
+			return count_range(node->left, x, y);
+		else 
+			return (node->cnt + count_range(node->left, x, y) + count_range(node->right, x, y));
+	}
+	ll count_range(T x, T y) {
+		return count_range(root, x, y);
+	}
+	void k_largest(AVL_node* node, ll *cnt, ll k) {
+		if(node) {
+			k_largest(node->right, cnt, k);
+			if(node->cnt > 1) {
+				ll dem = node->cnt;
+				for(ll i = 0; i < dem; i++) {
+					(*cnt)++;
+					if(*cnt == k) {
+						cout << node->value << endl;
+						return;
+					}	
+				}
+			}
+			else {
 				(*cnt)++;
 				if(*cnt == k) {
 					cout << node->value << endl;
 					return;
-				}	
+				}
 			}
+			k_largest(node->left, cnt, k);
 		}
-		else {
-			(*cnt)++;
-			if(*cnt == k) {
-				cout << node->value << endl;
-				return;
-			}
+	}
+	void k_largest(ll *cnt, ll k) {
+		k_largest(root, cnt, k);
+	}
+	AVL_node* lower_bound(AVL_node* node, T val) {
+		if (!node->left && !node->right && node->value < val) 
+			return NULL;  
+		if ((node->value >= val && !node->left) || (node->value >= val && node->left->value < val)) 
+			return node; 
+		if (node->value <= val) 
+			return lower_bound(node->right, val); 
+		else
+			return lower_bound(node->left, val);
+	}
+	void lower_bound(T val) {
+		AVL_node* node = lower_bound(root, val);
+		if(node)
+			cout << node->value << endl;
+		else
+			cout << "N/A" << endl;
+	}
+	AVL_node* upper_bound(AVL_node* node, T val) {
+		if (!node->left && !node->right && node->value <= val) 
+			return NULL;  
+		if ((node->value > val && !node->left) || (node->value > val && node->left->value <= val)) 
+			return node; 
+		if (node->value <= val) 
+			return upper_bound(node->right, val); 
+		else
+			return upper_bound(node->left, val);
+	}
+	void upper_bound(T val) {
+		AVL_node* node = upper_bound(root, val);
+		if(node)
+			cout << node->value << endl;
+		else
+			cout << "N/A" << endl;
+	}
+	void closest(AVL_node* node, T k, T &close, T &close_val) { 
+		if (!node) 
+			return; 
+		if (node->value == k) { 
+			close_val = k; 
+			return; 
+		} 
+		if (close > abs(node->value - k)) { 
+			close = abs(node->value - k); 
+			close_val = node->value; 
+		} 
+		if (k < node->value) 
+			closest(node->left, k, close, close_val); 
+		else
+			closest(node->right, k, close, close_val); 
+	} 
+	T closest(T k) { 
+		AVL_node* tmp = root;
+		while(tmp->right) {
+			tmp = tmp->right;
 		}
-		k_largest(node->left, cnt, k);
+		T close = tmp->value, close_val; 
+		closest(root, k, close, close_val); 
+		return close_val; 
 	}
-}
-template<typename T> int AVL<T>::count_range(AVL<T>* node, T x, T y) {
-	if(!node)
-		return 0;
-	if(node->value == x && node->value == y)
-		return node->count;
-	if(node->value < x)
-		return count_range(node->right, x, y);
-	else if(node->value > y)
-		return count_range(node->left, x, y);
-	else {
-		return (node->count + count_range(node->left, x, y) + count_range(node->right, x, y));
-	}
-}
-template<typename T> void AVL<T>::closest_main(AVL<T>* node, T k, T &close, T &close_val) { 
-	if (!node) 
-		return; 
-	if (node->value == k) { 
-		close_val = k; 
-		return; 
+	void closest_student(AVL_node* node, int k, int &close, int &close_val) { 
+		if (!node) 
+			return; 
+		if ((node->value).rollno == k) { 
+			close_val = k; 
+			return; 
+		} 
+		if (close > abs((node->value).rollno - k)) { 
+			close = abs((node->value).rollno - k); 
+			close_val = (node->value).rollno; 
+		} 
+		if (k < (node->value).rollno) 
+			closest_student(node->left, k, close, close_val); 
+		else
+			closest_student(node->right, k, close, close_val); 
 	} 
-	if (close > abs(node->value - k)) { 
-		close = abs(node->value - k); 
-		close_val = node->value; 
-	} 
-	if (k < node->value) 
-		closest_main(node->left, k, close, close_val); 
-	else
-		closest_main(node->right, k, close, close_val); 
-} 
-template<typename T> T AVL<T>::closest(AVL<T>* node, T k) { 
-	AVL<T>* tmp = node;
-	while(tmp->right) {
-		tmp = tmp->right;
+	T closest_student(int k) { 
+		/*AVL_node* tmp = root;
+		while(tmp->right) {
+			tmp = tmp->right;
+		}*/
+		int close = INT_MAX, close_val; 
+		closest_student(root, k, close, close_val); 
+		T *s_tmp;
+		s_tmp = new Student("", close_val);
+		AVL_node *tmp2 = avl_search(root, *s_tmp);
+		return tmp2->value; 
 	}
-	T close = tmp->value, close_val; 
-	closest_main(node, k, close, close_val); 
-	return close_val; 
-}
-template<typename T> AVL<T>* AVL<T>::lower_bound(AVL<T>* node, T val) {
-	if (!node->left && !node->right && node->value < val) 
-		return nullptr;  
-	if ((node->value >= val && !node->left) || (node->value >= val && node->left->value < val)) 
-		return node; 
-	if (node->value <= val) 
-		return lower_bound(node->right, val); 
-	else
-		return lower_bound(node->left, val);
-}
-template<typename T> AVL<T>* AVL<T>::upper_bound(AVL<T>* node, T val) {
-	if (!node->left && !node->right && node->value <= val) 
-		return nullptr;  
-	if ((node->value > val && !node->left) || (node->value > val && node->left->value <= val)) 
-		return node; 
-	if (node->value <= val) 
-		return upper_bound(node->right, val); 
-	else
-		return upper_bound(node->left, val);
-}
-
+};
 
 
 int main() {
-	AVL<int> *tmp, *root = NULL;
-	int inp1, x, y, cnt;
+	AVL<Student> a;
+	//string inp1, x, y; 
+	int inp1, x, y; 
+	ll cnt, k;
 	Student *s, *s2;
 	string s_name;
 	int s_roll;
 	int op;
+	bool tmp;
 	//Student s(25, "Suman Mitra");
 	//cout << s << endl;
 	while(1) {
 		cnt = 0;
 		cin >> op;
 		switch(op) {
-			case 1: //cin >> s_name >> s_roll;
-					//s = new Student(s_name, s_roll);
-					//root = AVL<Student>::insert_node(root, *s);
-					cin >> inp1;								
-					root = AVL<int>::insert_node(root, inp1);				//INSERT NODE
+			case 1: cin >> s_name >> s_roll;
+					s = new Student(s_name, s_roll);
+					a.avl_insert(*s);
+					//cin >> inp1;								
+					//a.avl_insert(inp1);													//INSERT NODE
 					break;
-			case 2:	//cin >> s_roll;
-					//s = new Student("", s_roll);
-					//root = AVL<Student>::delete_node(root, *s);				//DELETE NODE
-					cin >> inp1;
-					root = AVL<int>::delete_node(root, inp1);				
+			case 2:	cin >> s_roll;
+					s = new Student("", s_roll);
+					a.avl_delete(*s);														//DELETE NODE
+					//cin >> inp1;
+					//a.avl_delete(inp1);				
 					break;
-			case 3: //cin >> s_roll;
-					//s = new Student("", s_roll);
-					//tmp = AVL<Student>::search_node(root, *s);		//SEARCH NODE
-					cin >> inp1;
-					tmp = AVL<int>::search_node(root, inp1);
+			case 3: cin >> s_roll;
+					s = new Student("", s_roll);
+					tmp = a.avl_search(*s);													//SEARCH NODE
+					//cin >> inp1;
+					//tmp = a.avl_search(inp1);
 					if(tmp)
-						cout << "PRESENT: " << tmp->value << endl;
+						cout << "PRESENT" << endl;
 					else
 						cout << "NOT PRESENT" << endl; 
 					break;
-			case 4: //cin >> s_roll;
-					//s = new Student("", s_roll);
-					//tmp = AVL<Student>::search_node(root, *s);	//COUNT OCCURENCES OF AN ELEMENT
-					cin >> inp1;
-					tmp = AVL<int>::search_node(root, inp1);
-					if(tmp)
-						cout << tmp->count << endl;
-					else
-						cout << 0 << endl;
+			case 4: cin >> s_roll;
+					s = new Student("", s_roll);
+					cout << a.avl_count_occur(*s) << endl;									//COUNT OCCURENCES OF AN ELEMENT
+					//cin >> inp1;
+					//cout << a.avl_count_occur(inp1) << endl;
 					break;
-			case 5:	//cin >> s_roll;
+			case 5:	cin >> s_roll;
+					s = new Student("", s_roll);	
+					a.lower_bound(*s);														//LOWER BOUND
+					//cin >> inp1;
+					//a.lower_bound(inp1);
+					break;
+			case 6: cin >> s_roll;
+					s = new Student("", s_roll);	
+					a.upper_bound(*s);														//UPPER BOUND
+					//cin >> inp1;
+					//a.upper_bound(inp1);
+					break;
+			case 7: cin >> s_roll;
 					//s = new Student("", s_roll);	
-					//tmp = AVL<Student>::lower_bound(root, *s);		//LOWER BOUND
-					cin >> inp1;
-					tmp = AVL<int>::lower_bound(root, inp1);
-					if(tmp)
-						cout << tmp->value << endl;
-					else 
-						cout << "NULL" << endl;
+					cout << a.closest_student(s_roll) << endl;								//CLOSEST ELEMENT TO SOME VALUE
+					//cin >> inp1;
+					//cout << a.closest(inp1) << endl;
 					break;
-			case 6: //cin >> s_roll;
-					//s = new Student("", s_roll);	
-					//tmp = AVL<Student>::upper_bound(root, *s);		//UPPER BOUND
-					cin >> inp1;
-					tmp = AVL<int>::upper_bound(root, inp1);
-					if(tmp)
-						cout << tmp->value << endl;
-					else 
-						cout << "NULL" << endl;
-					break;
-			case 7: //cin >> s_roll;
-					//s = new Student("", s_roll);	
-					//cout << AVL<Student>::closest(root, *s) << endl;		//CLOSEST ELEMENT TO SOME VALUE
-					cin >> inp1;
-					cout << AVL<int>::closest(root, inp1) << endl;
-					break;
-			case 8: cin >> inp1;
-					AVL<int>::k_largest(root, &cnt, inp1);			//K-th LARGEST ELEMENT
+			case 8: cin >> k;
+					a.k_largest(&cnt, k);													//K-th LARGEST ELEMENT
 					break;
 			case 9: cin >> x >> y;
-					//s = new Student("", x);
-					//s2 = new Student("", y);		
-					//cout << AVL<Student>::count_range(root, *s, *s2) << endl;		//COUNT ELEMENTS IN A GIVEN RANGE
-					cout << AVL<int>::count_range(root, x, y) << endl;
+					s = new Student("", x);
+					s2 = new Student("", y);		
+					cout << a.count_range(*s, *s2) << endl;									//COUNT ELEMENTS IN A GIVEN RANGE
+					//cin >> x >> y;
+					//cout << a.count_range(x, y) << endl;
 					break;
 			case 0: exit(1);
 			default: cout << "Enter Values b/w 0 to 9" << endl;
 					break;
 
 		}
-		AVL<int>::print_inorder(root);
+		a.print_avl_inorder();
 		cout << endl;
 	}
-	/**root = AVL<int>::insert_node(root, 5);
-	root = AVL<int>::insert_node(root, 2);
-	root = AVL<int>::insert_node(root, 2);
-	root = AVL<int>::insert_node(root, 3);
-	root = AVL<int>::insert_node(root, 4);
-	root = AVL<int>::insert_node(root, 1);
-	root = AVL<int>::insert_node(root, 7);
-	root = AVL<int>::insert_node(root, 9);
-	AVL<int>::print_inorder(root);
-	cout << endl;
-	//root = AVL<int>::delete_node(root, 5);
-	//cout << endl;
-	AVL<int>::print_inorder(root);
-	cout << endl;
-
-	int cnt = 0;
-	//AVL<int>* tmp = AVL<int>::k_largest(root, &cnt, 2);
-	AVL<int>::k_largest(root, &cnt, 6);
-	//cout << tmp->value << endl;
-	AVL<int>::print_inorder(root);
-	cout << endl;
-	cout << AVL<int>::count_range(root, 2, 5) << endl;
-
-	cout << "Closest: " << AVL<int>::closest(root, -3) << endl;
-
-	AVL<int> *tmp;
-	tmp = AVL<int>::upper_bound(root, 9);
-	if(tmp)
-		cout << "Upper Bound: " << tmp->value << endl;
-	else
-		cout << "NULL" << endl;
-	/*int a = 10;
-	float b = 10.23;
-	string p = "ab", q = "xyz";
-	decltype(a) x;
-	decltype(b) y;
-	decltype(p) z1;
-	decltype(q) z2;
-	cout << typeid(x).name() << endl;
-	cout << typeid(y).name() << endl;
-	cout << typeid(z1).name() << endl;
-	cout << typeid(z2).name() << endl;*/
 	return 0;
 }
