@@ -7,14 +7,14 @@ $('nav li').hover(
 	}
 );
 
-/*function count_visitors(){
+function count_visitors(){
 	var counter = $('#counter span').text(); // geting value from span
 	var count = 0;
 	count = parseInt(counter.value);
 	count = count+1;
 	counter.innerHTML = parseInt(count);
 }
-window.onload = count_visitors;*/
+window.onload = count_visitors; 
 
 var canvas = document.getElementById("canvas");
 var context = canvas.getContext("2d");
@@ -35,28 +35,24 @@ function inside_clock(context, radius) {
 	var grad;
 	context.beginPath();
 	context.arc(0, 0, radius, 0, 2 * Math.PI);
-	var temp_gradient = context.createRadialGradient(0, 0, radius/2, 0, 0, radius);
-	temp_gradient.addColorStop(0, "#fdcc0d");
-	temp_gradient.addColorStop(1, "black");
-	context.fillStyle = temp_gradient;
+	context.fillStyle = 'white';
 	context.fill();
 	grad = context.createRadialGradient(0, 0, radius * 0.95, 0, 0, radius * 1.05);
 	grad.addColorStop(0, '#333');
 	grad.addColorStop(0.5, 'white');
 	grad.addColorStop(1, '#333');
 	context.strokeStyle = grad;
-	context.lineWidth = radius * 0.1;
+	context.lineWidth = radius*0.1;
 	context.stroke();
 	context.beginPath();
-	context.arc(0, 0, radius * 0.1, 0, 2 * Math.PI);
+	context.arc(0, 0, radius*0.1, 0, 2*Math.PI);
 	context.fillStyle = '#333';
 	context.fill();
 }
 function hour_numbers(context, radius) {
 	var ang;
 	var num;
-	context.font = radius * 0.2 + "px verdana";
-	context.fillStyle = "white";
+	context.font = radius * 0.15 + "px arial";
 	context.textBaseline = "middle";
 	context.textAlign = "center";
 	for(num = 1; num < 13; num++) {
@@ -75,17 +71,16 @@ function drawTime(context, radius){
 	var hour = now.getHours();
 	var minute = now.getMinutes();
 	var second = now.getSeconds();
-	hour = hour % 12;
-	hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
-	drawHand(context, hour, radius * 0.5, radius * 0.05, "black");
-	minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
-	drawHand(context, minute, radius * 0.8, radius * 0.05, "#033f63");
-	second = (second * Math.PI / 30);
-	drawHand(context, second, radius * 0.9, radius * 0.02, "#a62c2b");
+	hour = hour%12;
+	hour = (hour*Math.PI/6)+(minute*Math.PI/(6*60))+(second*Math.PI/(360*60));
+	drawHand(context, hour, radius*0.5, radius*0.07);
+	minute = (minute*Math.PI/30)+(second*Math.PI/(30*60));
+	drawHand(context, minute, radius*0.8, radius*0.07);
+	second = (second*Math.PI/30);
+	drawHand(context, second, radius*0.9, radius*0.02);
 }
-function drawHand(context, pos, length, width, color) {
+function drawHand(context, pos, length, width) {
 	context.beginPath();
-	context.strokeStyle = color;
 	context.lineWidth = width;
 	context.lineCap = "round";
 	context.moveTo(0,0);
