@@ -28,7 +28,7 @@ setInterval(analog_clock, 1000);
 function analog_clock() {
 	inside_clock(context, radius);
 	hour_numbers(context, radius);
-	drawTime(context, radius);
+	calc_time(context, radius);
 }
 
 function inside_clock(context, radius) {
@@ -42,7 +42,7 @@ function inside_clock(context, radius) {
 	context.fill();
 	grad = context.createRadialGradient(0, 0, radius * 0.95, 0, 0, radius * 1.05);
 	grad.addColorStop(0, '#333');
-	grad.addColorStop(0.5, 'white');
+	grad.addColorStop(0.5, '#a62c2b');
 	grad.addColorStop(1, '#333');
 	context.strokeStyle = grad;
 	context.lineWidth = radius * 0.1;
@@ -55,7 +55,7 @@ function inside_clock(context, radius) {
 function hour_numbers(context, radius) {
 	var ang;
 	var num;
-	context.font = radius * 0.2 + "px verdana";
+	context.font = "14px verdana";
 	context.fillStyle = "white";
 	context.textBaseline = "middle";
 	context.textAlign = "center";
@@ -70,28 +70,28 @@ function hour_numbers(context, radius) {
 		context.rotate(-ang);
 	}
 }
-function drawTime(context, radius){
+function calc_time(context, radius) {
 	var now = new Date();
 	var hour = now.getHours();
 	var minute = now.getMinutes();
 	var second = now.getSeconds();
 	hour = hour % 12;
 	hour = (hour * Math.PI / 6) + (minute * Math.PI / (6 * 60)) + (second * Math.PI / (360 * 60));
-	drawHand(context, hour, radius * 0.5, radius * 0.05, "black");
+	time_hands(context, hour, radius * 0.5, radius * 0.05, "black");
 	minute = (minute * Math.PI / 30) + (second * Math.PI / (30 * 60));
-	drawHand(context, minute, radius * 0.8, radius * 0.05, "#033f63");
+	time_hands(context, minute, radius * 0.8, radius * 0.05, "#033f63");
 	second = (second * Math.PI / 30);
-	drawHand(context, second, radius * 0.9, radius * 0.02, "#a62c2b");
+	time_hands(context, second, radius * 0.9, radius * 0.02, "#a62c2b");
 }
-function drawHand(context, pos, length, width, color) {
+function time_hands(context, position, length, width, color) {
 	context.beginPath();
 	context.strokeStyle = color;
 	context.lineWidth = width;
 	context.lineCap = "round";
 	context.moveTo(0,0);
-	context.rotate(pos);
+	context.rotate(position);
 	context.lineTo(0, -length);
 	context.stroke();
-	context.rotate(-pos);
+	context.rotate(-position);
 }
 

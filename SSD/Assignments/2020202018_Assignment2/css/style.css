@@ -9,7 +9,7 @@ body {
 	text-align: left;
 	word-wrap: break-word;
 }
-.cn {
+.div1 .cn {
 	float: right;
 }
 a {
@@ -17,6 +17,12 @@ a {
 }
 .innerDiv3 {
 	float: right;
+	width: 30%;
+}
+.div1 {
+	width: 100%;
+	position: relative;
+	display: inline-block;
 }
 
 .connect_img {

@@ -1,4 +1,8 @@
 # SSD ASSIGNMENT - 2
+
+### Github URL:
+  - **sumanm-iiit.github.io**
+
 ### Pages:
   - **index.html ->** It contains a brief Introduction about myself and an analog clock made using **<canvas>**.
   - **wbut.html ->** It contains a gallery of 3 images of WBUT alongwith a few paragraphs of information. The images can be opened in a new tab in full size by clicking on them.
