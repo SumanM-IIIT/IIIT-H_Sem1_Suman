@@ -95,7 +95,6 @@ public:
 			}
 		}
 		else {
-			count--;
 			if(node->right) {
 				tmp = node->right;
 				while(tmp->left)
@@ -117,6 +116,9 @@ public:
 		return node;
 	}
 	void erase_omap(K key) {
+		if(find_omap(key)) {
+			count--;
+		}
 		root = erase_omap(root, key);
 	}
 	bool find_omap(map_node* root, K key) {
@@ -285,26 +287,26 @@ int main() {
 		cin >> op;
 		switch(op) {
 			case 1: cin >> key >> value;
-					m.insert_omap(key, value);
+					m.insert_omap(key, value);						//INSERT
 					break;
 			case 2: cin >> key;
-					m.erase_omap(key);
+					m.erase_omap(key);								//ERASE
 					break;
 			case 3: cin >> key;
-					res = m.find_omap(key);
+					res = m.find_omap(key);							//FIND
 					if(res)
 						cout << "True" << endl;
 					else
 						cout << "False" << endl;
 					break;
-			case 4: cin >> key >> value;
+			case 4: cin >> key >> value;							//map[key]
 					//m[key] = value;
 					cout << m[key] << endl;
 					m[key] = value;
 					break;
-			case 5: cout << m.size_omap() << endl;
+			case 5: cout << m.size_omap() << endl;					//SIZE
 					break;
-			case 6: m.clear_omap();
+			case 6: m.clear_omap();									//CLEAR
 					break;
 			case 0: exit(1);
 			default: break;

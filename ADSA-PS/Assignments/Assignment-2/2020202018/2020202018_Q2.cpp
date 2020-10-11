@@ -155,8 +155,8 @@ public:
 
 
 int main() {
-	unordered_map<string, string> m;
-	string key;
+	unordered_map<ll, string> m;
+	ll key;
 	string value;
 	int op;
 	bool res;
@@ -165,20 +165,20 @@ int main() {
 		cin >> op;
 		switch(op) {
 			case 1: cin >> key >> value;
-					m.insert_umap(key, value);
+					m.insert_umap(key, value);					//INSERT
 					break;
 			case 2: cin >> key;
-					m.erase_umap(key);
+					m.erase_umap(key);							//ERASE
 					break;
 			case 3: cin >> key;
-					res = m.find_umap(key);
+					res = m.find_umap(key);						//FIND
 					if(res)
 						cout << "True" << endl;
 					else
 						cout << "False" << endl;
 					break;
 			case 4: cin >> key;
-					if(m.find_umap(key))
+					if(m.find_umap(key))						//map[key]
 						cout << m[key] << endl;
 					else
 						cout << "N/A" << endl;
