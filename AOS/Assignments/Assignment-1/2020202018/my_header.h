@@ -197,11 +197,6 @@ void off_keys() {
 
 int read_char() {
 	char c;
-	/*if(top_c != -1) {
-		c = top_c;
-		top_c--;
-		return c;
-	}*/
 	read(0, &c, 1);
 	return c;
 }
@@ -285,8 +280,12 @@ void go_forward() {
 }
 
 void go_up_level() {
-	if(root == curr_dir)
+	//string tmp(curr_dir);
+	if(!strcmp(root, curr_dir)) {
+		//cout << "lakjsdkfsdlkfnjfglskdfnsdfsld 14314343214";
 		return;
+	}
+	//cout << "root: " << root << endl << "Curr: " << curr_dir;
 	go_back_stack.push(string(curr_dir));
 	curr_dir_path("../");	
 }
@@ -683,7 +682,7 @@ void command_mode() {
 				}
 			}
 			clear_cmd_prompt();
-			cursor_movement(status_line, 0);
+			cursor_movement(op_line, 0);
 			cout << "DESIRED FILE(S)/DIR(S) CREATED SUCCESSFULLY !!";
 		}
 		else if(cmd_str_arr[0] == "delete_file") {
