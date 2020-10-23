@@ -1,3 +1,5 @@
+import sys
+
 month_dict = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6, 'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12}
 days_of_months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
 
@@ -48,7 +50,7 @@ def date_diff(date1, date2):
 	return abs(days2 - days1)  
 
 
-date_file = open('date_calculator.txt', 'r') 
+date_file = open(sys.argv[1], 'r') 
 dates = date_file.readlines()
 
 actual_dates = []
@@ -59,11 +61,10 @@ for i in dates:
 #print(actual_dates)
 date1 = date_format(actual_dates[0])
 date2 = date_format(actual_dates[1])
-print(date1)
-print(date2)
+
 diff = date_diff(date1, date2)
 op_line = 'Date Difference: ' + str(diff) + ' Day(s)'
 
-op_file = open('output.txt', 'w') 
+op_file = open('files/output_q2.txt', 'w') 
 op_file.writelines(op_line) 
 op_file.close() 

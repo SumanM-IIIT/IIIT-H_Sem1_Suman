@@ -1,4 +1,5 @@
 import ast
+import sys
 from datetime import datetime, timedelta
 
 def get_free_slots(emp_slot_list, start_time, end_time):
@@ -72,11 +73,11 @@ def get_common_slot(curr_date, free_slot_emp1, free_slot_emp2, duration, start_t
 	return str(common_dict)
 
 
-emp1_file = open('Employee1.txt', 'r') 
+emp1_file = open(sys.argv[1], 'r') 
 content = emp1_file.read()
 emp1_dict = ast.literal_eval(content)
 
-emp2_file = open('Employee2.txt', 'r') 
+emp2_file = open(sys.argv[2], 'r') 
 content = emp2_file.read()
 emp2_dict = ast.literal_eval(content)
 
@@ -113,6 +114,6 @@ op_line.append(key2 + ': ' + str(free_slot_emp2) + '\n\n')
 op_line.append('Slot Duration: ' + duration + ' hour(s)\n')
 op_line.append(common_slot)
 
-op_file = open('output_q3.txt', 'w') 
+op_file = open('files/output_q3.txt', 'w') 
 op_file.writelines(op_line) 
 op_file.close() 
