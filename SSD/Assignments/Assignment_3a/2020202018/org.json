@@ -1,0 +1,6 @@
+{
+"L0": [{ "name": 0 }],
+"L1": [{ "name": 1, "parent": 0 },{ "name": 6, "parent": 0 }],
+"L2": [{ "name": 2, "parent": 1 },{ "name": 7, "parent": 6 },{ "name": 8, "parent": 6 }],
+"L3": [{ "name": 3, "parent": 2 },{ "name": 4, "parent": 2 },{ "name": 5, "parent": 2 },{ "name": 9, "parent": 8 },{ "name": 10, "parent": 8 }]
+}

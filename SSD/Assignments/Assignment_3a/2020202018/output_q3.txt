@@ -1,0 +1,6 @@
+Available slots: 
+Employee1: ['09:00AM - 10:00AM', '11:00AM - 12:30PM', '01:00PM - 04:00PM']
+Employee2: ['09:00AM - 10:30AM', '11:30AM - 12:00PM', '01:30PM - 03:30PM', '04:30PM - 05:00PM']
+
+Slot Duration: 2 hour(s)
+{'5/10/2020': ['01:30PM - 03:30PM']}

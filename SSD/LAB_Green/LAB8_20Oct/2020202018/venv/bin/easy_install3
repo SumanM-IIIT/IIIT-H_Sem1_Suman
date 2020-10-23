@@ -1,0 +1,8 @@
+#!/home/bug_sm87/IIIT-H_Sem1_Suman/SSD/LAB_Green/LAB8_20Oct/2020202018/venv/bin/python
+# -*- coding: utf-8 -*-
+import re
+import sys
+from setuptools.command.easy_install import main
+if __name__ == '__main__':
+    sys.argv[0] = re.sub(r'(-script\.pyw|\.exe)?$', '', sys.argv[0])
+    sys.exit(main())
