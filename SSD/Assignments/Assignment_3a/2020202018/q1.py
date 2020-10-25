@@ -30,8 +30,9 @@ def find_depth(child, par):
 x = parent(emp1)
 y = parent(emp2)
 res = None
+
 if x is None or y is None:
-	res = root_val
+	print('Common Parent NOT AVAILABLE')
 else:
 	while x != y:
 		if parent(x) is None or parent(y) is None:
@@ -46,6 +47,8 @@ else:
 			y = parent(y)	
 	res = x
 
-print(res)
-print(find_depth(emp1, res))
-print(find_depth(emp2, res))
+	print(res)
+	print(find_depth(emp1, res))
+	print(find_depth(emp2, res))
+
+	

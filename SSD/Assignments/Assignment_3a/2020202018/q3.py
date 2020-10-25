@@ -68,7 +68,8 @@ def get_common_slot(curr_date, free_slot_emp1, free_slot_emp2, duration, start_t
 					return str(common_dict)
 		tmp_start += timedelta(minutes = 30)
 
-	f_list.append(str_tmp)
+	#f_list.append(str_tmp)
+	f_list = ['N/A']
 	common_dict[curr_date] = f_list
 	return str(common_dict)
 
@@ -99,14 +100,17 @@ emp2_slot_list = emp2_dict[date_emp2]
 duration = input()
 #dur_object = make_dur_object(date_emp1, duration)
 
+
 if x == y:
 	start_time = datetime.strptime(date1_list[0] + date1_list[1] + date1_list[2] + str(9), '%d%m%Y%H')
 	end_time = datetime.strptime(date1_list[0] + date1_list[1] + date1_list[2] + str(17), '%d%m%Y%H')
 	free_slot_emp1 = get_free_slots(emp1_slot_list, start_time, end_time)
 	free_slot_emp2 = get_free_slots(emp2_slot_list, start_time, end_time)
-
-
-common_slot = get_common_slot(date_emp1, free_slot_emp1, free_slot_emp2, duration, start_time, end_time)
+	common_slot = get_common_slot(date_emp1, free_slot_emp1, free_slot_emp2, duration, start_time, end_time)
+else:
+	common_slot = str(['N/A (DIFFERENT DATES)'])
+	free_slot_emp1 = ['N/A (DIFFERENT DATES)']
+	free_slot_emp2 = ['N/A (DIFFERENT DATES)']
 
 op_line = ['Available slots: \n']
 op_line.append(key1 + ': ' + str(free_slot_emp1) + '\n')
