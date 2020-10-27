@@ -163,7 +163,7 @@ int main(int argc, char** argv) {
 		i++;
 	}
 	f_out.open(argv[2]);
-	f_in.open(to_string(file_cnt));
+	f_in.open("data/" + to_string(file_cnt));
 	while(f_in >> num) {
 		f_out << num << " ";
 	}
