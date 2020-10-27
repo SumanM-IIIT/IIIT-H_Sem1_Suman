@@ -1,24 +1,35 @@
 #Q1
-select Fname from EMPLOYEE where Super_ssn in (select Ssn from EMPLOYEE where Fname = 'Jennifer' and Lname = 'Wallace');
+select Fname from EMPLOYEE where Super_ssn = 
+	(select Ssn from EMPLOYEE where Fname = 'Jennifer' and Lname = 'Wallace');
 
 #Q2
-select Fname from EMPLOYEE INNER JOIN DEPENDENT on Ssn = Essn and Fname = Dependent_name and EMPLOYEE.Sex = DEPENDENT.Sex;
+select Fname from EMPLOYEE INNER JOIN DEPENDENT on 
+Ssn = Essn and Fname = Dependent_name and EMPLOYEE.Sex = DEPENDENT.Sex;
 
 #Q3
-select Fname from EMPLOYEE where Ssn in (select Essn from WORKS_ON where Pno = (select Pnumber from PROJECT where Pname = 'ProductX') and Hours > 10) and Dno = 5; 
+select Fname from EMPLOYEE where Ssn in 
+	(select Essn from WORKS_ON where Pno = 
+		(select Pnumber from PROJECT where Pname = 'ProductX')
+	and Hours > 10)
+and Dno = 5; 
 
 #Q4
-select Pnumber, Dnum, Lname, Address, Bdate from PROJECT INNER JOIN DEPARTMENT INNER JOIN EMPLOYEE on Dnumber = Dnum and Mgr_ssn = Ssn where PLocation = 'Stafford';  
+select Pnumber, Dnum, Lname, Address, Bdate from PROJECT INNER JOIN DEPARTMENT INNER JOIN EMPLOYEE on 
+Dnumber = Dnum and Mgr_ssn = Ssn where PLocation = 'Stafford';  
 
 #Q5
-select DISTINCT Fname from EMPLOYEE INNER JOIN WORKS_ON INNER JOIN PROJECT on Ssn = Essn and Pno = Pnumber where Dnum = 5;
+select Fname from EMPLOYEE WHERE NOT EXISTS
+	(select Pnumber from PROJECT where Pnumber NOT IN 
+		(select Pno from WORKS_ON where Ssn = Essn)
+	 and Dnum = 5); 
 
 
 
 
-##########################################################
-# BELOW QUERIES WERE ALREADY GIVEN FOR DATABASE CREATION #
-##########################################################
+
+##############################################################
+##  BELOW QUERIES WERE ALREADY GIVEN FOR DATABASE CREATION  ##
+##############################################################
 
 
 create database company;
@@ -94,10 +105,20 @@ CREATE TABLE `WORKS_ON` (
 );
 INSERT INTO `WORKS_ON` VALUES ('123456789',1,32.5),('123456789',2,7.5),('333445555',2,10.0),('333445555',3,10.0),('333445555',10,10.0),('333445555',20,10.0),('453453453',1,20.0),('453453453',2,20.0),('666884444',3,40.0),('888665555',20,NULL),('987654321',20,15.0),('987654321',30,20.0),('987987987',10,35.0),('987987987',30,5.0),('999887777',10,10.0),('999887777',30,30.0);
 
-#DELETE IT LATER
-INSERT INTO `DEPENDENT` VALUES ('987654321','Jennifer','F','1982-07-23','Mother');
-INSERT INTO `DEPENDENT` VALUES ('888665555','James','M','1982-07-23','Brother');
-INSERT INTO `WORKS_ON` VALUES ('666884444',1 ,8);
+
+
+#########################
+##  FOR EXPERIMENTING  ##
+#########################
+
+#INSERT INTO `DEPENDENT` VALUES ('987654321','Jennifer','F','1982-07-23','Mother');
+#INSERT INTO `DEPENDENT` VALUES ('888665555','James','M','1982-07-23','Brother');
+#INSERT INTO `WORKS_ON` VALUES ('666884444',1 ,8);
+#drop table WORKS_ON;
+#select * from WORKS_ON;
+#select * from DEPENDENT;
+#drop table DEPENDENT;
+#INSERT INTO `WORKS_ON` VALUES ('453453453', 3, 15);
 
 
 
