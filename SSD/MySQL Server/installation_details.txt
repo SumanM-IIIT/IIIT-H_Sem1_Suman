@@ -1,0 +1,15 @@
+username: suman_mitra  (Full: suman_mitra@localhost or 'suman_mitra'@'localhost')
+Password: P**B***!
+
+Command to run: mysql -u suman_mitra -p
+
+Installation Guide: https://www.digitalocean.com/community/tutorials/how-to-install-mysql-on-ubuntu-20-04#conclusion
+
+Check if MySQL Server is running: systemctl status mysql.service
+If not running, start with: sudo systemctl start mysql
+
+mysql -u suman_mitra -p
+mysql>> SHOW DATABASES;
+mysql>> CREATE DATABASE Demo;
+mysql>> USE Demo1;
+
