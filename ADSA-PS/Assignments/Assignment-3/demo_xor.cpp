@@ -1,94 +1,96 @@
 #include <iostream>
+#include <bits/stdc++.h>
 using namespace std;
-struct Node
-{
-   Node *left, *right;
-   // Constructor. Set left and right to NULL
-   Node():left(NULL),right(NULL){}
-};
-// Create a trie from the values in the array
-void insertValueInTrie(Node* r, unsigned int x)
-{
-   unsigned int N = sizeof(unsigned int) * 8;
-   for(int i=N-1; i>=0; i--)
-   {
-      unsigned int bitValue = (x & (1<<i)); // Get i'th Bit of x
-      if(bitValue != 0)
-      {
-         if(r->right == NULL)
-            r->right = new Node();
-         r = r->right;
+
+typedef long long ll;
+
+typedef struct trie_node {
+   struct trie_node *left, *right;
+} Node;
+
+Node* new_node() {
+   Node* tmp = (Node *)malloc(sizeof(struct trie_node));
+   tmp->left = tmp->right = NULL;
+   return tmp;
+}
+void insert_trie_node(Node* root, ll val) {
+   ll i, bit, byte = 8 * sizeof(ll);
+   for(i = byte - 1; i >= 0; i--) {
+      bit = val & (1 << i);
+      if(bit) {
+         if(!root->right)
+            root->right = new_node();
+         root = root->right;
       }
-      else
-      {
-         if(r->left == NULL)
-            r->left = new Node();
-         r = r->left;
+      else {
+         if(!root->left)
+            root->left = new_node();
+         root = root->left;
       }
    }
 }
-// Find Max XOR of x in the tree rooted at r.
-unsigned int findMaxXOR(Node* r, unsigned int x, int bitPos)
-{
-   if(r == NULL || bitPos < 0)
+Node* build_trie(vector<ll> A, int n) {
+   Node* root = new_node();
+   ll i;
+   for(i = 0; i < n; i++)
+      insert_trie_node(root, A[i]);
+   return root;
+}
+ll max_xor(Node* root, ll x, ll pos_bit) {
+   ll bit = 0, res = 0;
+   if(!root || pos_bit < 0)
       return 0;
-   if(bitPos == 0)
-   {
-      if( (x & (1<<bitPos)) == 1)
-         return (r->left == NULL) ? 0 : 1;
-      else
-         return (r->right == NULL) ? 0 : 1;
-   }
-   unsigned int bitVal = 0;
-   unsigned int number = 0;
-   if( (x & (1<<bitPos)) != 0)
-   {
-      if(r->left == NULL)
-      {
-         number = findMaxXOR(r->right, x, bitPos-1);
-         bitVal = 0;
+   if(pos_bit == 0) {
+      if(x & (1 << pos_bit) == 0) {
+         if(root->right)
+            return 1;
+         return 0;
       }
-      else
-      {
-         number = findMaxXOR(r->left, x, bitPos-1);
-         bitVal = 1;
+      else {
+         if(root->left)
+            return 1;
+         return 0;
       }
    }
+   if((x & (1 << pos_bit)) == 0) {
+      if(root->right) {
+         res = max_xor(root->right, x, pos_bit - 1);
+         bit = 1;
+      }
+      else {
+         res = max_xor(root->left, x, pos_bit - 1);
+         bit = 0;
+      }
+   }
+   else {
+      if(root->left) {
+         res = max_xor(root->left, x, pos_bit - 1);
+         bit = 1;
+      }
+      else {
+         res = max_xor(root->right, x, pos_bit - 1);
+         bit = 0;
+      }
+   }
+   if(bit)
+      res |= (1 << pos_bit);
    else
-   {
-      if(r->right == NULL)
-      {
-         number = findMaxXOR(r->left, x, bitPos-1);
-         bitVal = 0;
-      }
-      else
-      {
-         number = findMaxXOR(r->right, x, bitPos-1);
-         bitVal = 1;
-      }
-   }
-   if(bitVal == 0)
-      number = number & ~(1<<bitPos); // Resetting bitPos
-   else
-      number = number | (1<<bitPos); // Setting bitPos
-   return number;
+      res &= ~(1 << pos_bit);
+   return res;
 }
-void printMaxXORTrie(unsigned int * arr, int n)
-{
-   // ROOT NODE
-   Node* r = new Node();
-   int maxXOR = 0;
-   for(int i=0; i<n; i++)
-   {
-      unsigned int t = findMaxXOR(r, arr[i], (sizeof(unsigned int)*8)-1 );
-      if(t > maxXOR)
-         maxXOR = t;
-      insertValueInTrie(r, arr[i]);
+
+int main() {
+   ll i, n, q, k, query;
+   cin >> n >> q;
+   vector<ll> A(n);
+   for(i = 0; i < n; i++) {
+      cin >> k;
+      A[i] = k;
    }
-   cout<<"MAX XOR VALUES : "<<maxXOR<<endl;
-}
-int main()
-{
-   unsigned int arr[] = {12, 15, 5, 7, 1, 9, 8, 6, 10, 13};
-   printMaxXORTrie(arr, 10);
+   Node *root = build_trie(A, n);
+   for(i = 0; i < q; i++) {
+      cin >> query;
+      cout << "Max: " << max_xor(root, query, (8 * sizeof(ll)) - 1) << endl;
+   }
+   return 0;
 }

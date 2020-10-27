@@ -86,6 +86,6 @@ int main() {
         }
     }
     res = s2.substr(first ,len);
-    cout << res <<endl;
+    cout << res << endl;
 	return 0;
 }
