@@ -1,81 +1,116 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <string.h>
+#include <iostream>
+#include <fstream>
+#include <unistd.h>
 #include <arpa/inet.h>
-#include <fcntl.h> // for open
-#include <unistd.h> // for close
 #include <pthread.h>
+#include <sys/socket.h>
+#include <linux/in.h>
+using namespace std;
+typedef struct
+{
+    int sock;
+    struct sockaddr address;
+    unsigned int addr_len;
+} connection_t;
 
-char client_message[2000];
-char buffer[1024];
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
+void * function(void *);
 
-void* socketThread(void* arg) {
-    int newSocket = *((int *)arg);
-    recv(newSocket, client_message, 2000 , 0);
+void * process(void * ptr)
+{
+    char * buffer;
+    int len;
+    connection_t * conn;
+    long addr = 0;
 
-    // Send message to the client socket 
-    pthread_mutex_lock(&amp;lock);
-    char *message = malloc(sizeof(client_message)+20);
-    strcpy(message,"Hello Client : ");
-    strcat(message,client_message);
-    strcat(message,"\n");
-    strcpy(buffer,message);
-    free(message);
-    pthread_mutex_unlock(&amp;lock);
-    sleep(1);
-    send(newSocket,buffer,13,0);
-    printf("Exit socketThread \n");
-    close(newSocket);
-    pthread_exit(NULL);
+    if (!ptr) pthread_exit(0);
+    conn = (connection_t *)ptr;
+
+    /* read length of message */
+    read(conn->sock, &len, sizeof(int));
+    if (len > 0)
+    {
+        addr = (long)((struct sockaddr_in *)&conn->address)->sin_addr.s_addr;
+        buffer = (char *)malloc((len+1)*sizeof(char));
+        buffer[len] = 0;
+
+        /* read message */
+        read(conn->sock, buffer, len);
+
+        /* print message */
+        printf("%ld.%ld.%ld.%ld: %s\n",
+            (addr      ) & 0xff,
+            (addr >>  8) & 0xff,
+            (addr >> 16) & 0xff,
+            (addr >> 24) & 0xff,
+            buffer);
+        free(buffer);
+    }
+    /* close socket and clean up */
+    close(conn->sock);
+    free(conn);
+    pthread_exit(0);
 }
 
+int main(int argc, char ** argv)
+{
+    int sock = -1;
+    struct sockaddr_in address;
+    int port;
+    connection_t * connection;
+    pthread_t thread;
 
-int main() {
-    int serverSocket, newSocket;
-    struct sockaddr_in serverAddr;
-    struct sockaddr_storage serverStorage;
-    socklen_t addr_size;
+    /* check for command line arguments */
+    if (argc != 2)
+    {
+        fprintf(stderr, "usage: %s port\n", argv[0]);
+        return -1;
+    }
 
-    //Create the socket. 
-    serverSocket = socket(PF_INET, SOCK_STREAM, 0);
+    /* obtain port number */
+    if (sscanf(argv[1], "%d", &port) <= 0)
+    {
+        fprintf(stderr, "%s: error: wrong parameter: port\n", argv[0]);
+        return -2;
+    }
+    /* create socket */
+    sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (sock <= 0)
+    {
+        fprintf(stderr, "%s: error: cannot create socket\n", argv[0]);
+        return -3;
+    }
+    /* bind socket to port */
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons(port);
+    if (bind(sock, (struct sockaddr *)&address, sizeof(struct sockaddr_in)) < 0)
+    {
+        fprintf(stderr, "%s: error: cannot bind socket to port %d\n", argv[0], port);
+        return -4;
+    }
+    /* listen on port */
+    if (listen(sock, 5) < 0)
+    {
+        fprintf(stderr, "%s: error: cannot listen on port\n", argv[0]);
+        return -5;
+    }
+    printf("%s: ready and listening\n", argv[0]);
 
-    // Configure settings of the server address struct
-    // Address family = Internet 
-    serverAddr.sin_family = AF_INET;
-    //Set port number, using htons function to use proper byte order 
-    serverAddr.sin_port = htons(7799);
-    //Set IP address to localhost 
-    serverAddr.sin_addr.s_addr = inet_addr("127.0.0.1");
-    //Set all bits of the padding field to 0 
-    memset(serverAddr.sin_zero, '\0', sizeof serverAddr.sin_zero);
-    bind(serverSocket, (struct sockaddr *) &serverAddr, sizeof(serverAddr));
-    
-    if(listen(serverSocket,50) == 0)
-        printf("Listening\n");
-    else
-        printf("Error\n");
-    
-    pthread_t tid[60];
-    int i = 0;
-    while(1) {
-        //Accept call creates a new socket for the incoming connection
-        addr_size = sizeof serverStorage;
-        newSocket = accept(serverSocket, (struct sockaddr *) &amp;serverStorage, &amp;addr_size);
-
-        //for each client request creates a thread and assign the client request to it to process
-        //so the main thread can entertain next request
-        if( pthread_create(&amp;tid[i++], NULL, socketThread, &amp;newSocket) != 0 )
-            printf("Failed to create thread\n");
-        if( i &gt;= 50) {
-            i = 0;
-            while(i < 50) {
-                pthread_join(tid[i++],NULL);
-            }
-            i = 0;
-        } 
+    while (1)
+    {
+        /* accept incoming connections */
+        connection = (connection_t *)malloc(sizeof(connection_t));
+        connection->sock = accept(sock, &connection->address, &connection->addr_len);
+        if (connection->sock <= 0)
+        {
+            free(connection);
+        }
+        else
+        {
+            /* start a new thread but do not wait for it */
+            pthread_create(&thread, 0, process, (void *)connection);
+            pthread_detach(thread);
+        }
     }
     return 0;
 }
