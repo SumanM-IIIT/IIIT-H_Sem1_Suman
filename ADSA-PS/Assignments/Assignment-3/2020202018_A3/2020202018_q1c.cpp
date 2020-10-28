@@ -69,8 +69,7 @@ vector<ll> build_suffix_array(string s, ll len) {
         suff_arr[i] = all_suff[i].index; 
     return suff_arr;
 }
-
-ll longest_common_substr(string tmp1, string tmp2) {
+/*ll longest_common_substr(string tmp1, string tmp2) {
     ll len = tmp1.length(), len2 = tmp2.length(), i, cnt = 0;
     for(i = 0; i < len && i < len2; i++) {
         if(tmp1[i] == tmp2[i])
@@ -79,19 +78,66 @@ ll longest_common_substr(string tmp1, string tmp2) {
             break;
     }
     return cnt;
+}*/
+vector<ll> calculate_lcp(string txt, vector<ll> suf_arr) { 
+    ll i, j = 0, k, n = suf_arr.size(); 
+    vector<ll> lcp_arr(n), inv_suf(n); 
+  
+    for(i = 0; i < n; i++) 
+        inv_suf[suf_arr[i]] = i; 
+    
+    for (i = 0; i < n; i++) { 
+        if (inv_suf[i] == n - 1) { 
+            j = 0; 
+            continue; 
+        }
+        k = suf_arr[inv_suf[i] + 1]; 
+        while (i + j < n && k + j < n && txt[i + j] == txt[k + j]) 
+            j++; 
+  
+        lcp_arr[inv_suf[i]] = j;
+        if (j > 0) 
+            j--; 
+    }
+    return lcp_arr; 
+} 
+string palindrome(vector<ll> suf_arr, vector<ll> lcp_arr, ll len, ll new_len, string str) {
+    ll i, pal_len = 0, pos = 0;
+    for(i = 1; i < new_len; i++) {
+        if(lcp_arr[i] > pal_len) {
+            if((suf_arr[i - 1] < len && suf_arr[i] > len) || (suf_arr[i] < len && suf_arr[i - 1] > len)) {
+                pal_len = lcp_arr[i];
+                pos = suf_arr[i];
+            }
+        }
+    }
+    cout << "Pos: " << pos << endl;
+    cout << "Pal_Len: " << pal_len << endl;
+    return str.substr(pos, pal_len);
 }
-
 
 int main() {
     string s, tmp1;
     cin >> s;
+    ll act_len = s.length(); 
     tmp1 = s;
     reverse(tmp1.begin(), tmp1.end());
-    s = s + "#" + tmp1 + "$";
+    s = s + "#" + tmp1/* + "$"*/;
     ll i, len = s.length();
 
     vector<ll> suf_arr = build_suffix_array(s, len);
+    vector<ll> lcp_arr = calculate_lcp(s, suf_arr);
 
+    s = palindrome(suf_arr, lcp_arr, act_len, len, s);
+
+    /*for(i = 0; i < len; i++) {
+        cout << suf_arr[i] << " ";
+    }
+    cout << endl;
+    for(i = 0; i < len; i++) {
+        cout << lcp_arr[i] << " ";
+    }
+    cout << endl;*/
     cout << s << endl;
     return 0;
 }

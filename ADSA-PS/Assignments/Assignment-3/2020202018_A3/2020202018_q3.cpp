@@ -128,44 +128,15 @@ void build_min_heap(ll len) {
     }
 }
 void final_merge_out(char* out_file, ll file_cnt) {
-	/*ifstream f_read[file_cnt];
-	ll cnt = 0, i;
-	for(i = 0; i < file_cnt; i++) {
-		f_read[i].open("data/" + to_string(i + 1));
-	}
 	ofstream f_out;
-	f_out.open(out_file);
-
-	HeapNode* heap_arr = new HeapNode[file_cnt]; 
-    for (i = 0; i < file_cnt; i++) { 
-  		f_read[i] >> heap_arr[i].el;
-        heap_arr[i].i = i; 
-    }
-    MinHeap new_heap(heap_arr, i); 
- 
-  	while (cnt != i) { 
-        HeapNode root = new_heap.get_min(); 
-        f_out << root.el << " ";
-        if(f_read[root.i] >> root.el) {
-	        root.el = LLONG_MAX;
-	        cnt++;
-	    }
-        new_heap.replace_min(root); 
-    }  
-    for(i = 0; i < file_cnt; i++) 
-        f_read[i].close();   
-    f_out.close();*/ 
-    ofstream f_out;
     f_out.open(out_file);
     ifstream f_in[file_cnt];
     ll i;
     for(i = 0; i < file_cnt; i++) {
-        //string f_name = to_string(i);
         f_in[i].open("data/" + to_string(i + 1));
     }
     ll num;
     for(i = 0; i < file_cnt; i++) {
-        //fscanf(chunks[i],"%d",&tmp);
         if(f_in[i] >> num) {
             min_heap[i] = num;
             f_index[i] = i;
@@ -175,23 +146,14 @@ void final_merge_out(char* out_file, ll file_cnt) {
     
     ll k = 0, tmp;
     while(k != file_cnt) {
-        //fprintf(final_out,"%d ",min_heap[0]);
         f_out << min_heap[0] << " ";
         
-        //fscanf(chunks[file_index[0]],"%d",&tmp_data);
         if(f_in[f_index[0]] >> tmp)
         	min_heap[0] = tmp;
         else {
             min_heap[0] = LLONG_MAX;
             k++;
         }
-        /*if(!feof(chunks[file_index[0]])){
-            min_heap[0] = tmp_data;
-        }
-        else{
-            min_heap[0] = INT_MAX;
-            iterator++;
-        }*/
         min_heapify(0, file_cnt);
     }
     for(i = 0; i < file_cnt; i++) {
@@ -262,11 +224,7 @@ int main(int argc, char** argv) {
 	}
 	f_out.close();
 	free(arr);
-	/*for(i = 1; i <= file_cnt; i++) {
-		merge_final_left(i, i + 1);
-		merge_final_right(i, i + 1);
-	}*/
-
+	
 	final_merge_out(argv[2], file_cnt);
 /*	for(i = 0; i < file_cnt; i++)
 		remove(("data/" + to_string(i + 1)).c_str());
