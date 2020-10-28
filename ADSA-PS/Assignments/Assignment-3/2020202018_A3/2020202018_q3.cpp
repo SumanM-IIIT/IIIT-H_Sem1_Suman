@@ -1,11 +1,15 @@
 #include<bits/stdc++.h>
 #include<fstream>
 #include<sys/stat.h>
+#include<limits.h>
 using namespace std;
 
 #define SIZE 1000000
 
 typedef long long ll;
+
+ll min_heap[SIZE];
+ll f_index[SIZE];
 
 
 void merge(ll* arr, ll left, ll mid, ll right) {
@@ -51,7 +55,7 @@ void merge_sort(ll *arr, ll left, ll right) {
 		merge(arr, left, mid, right);
     }
 }
-void merge_files(ll file_i) {
+/*void merge_files(ll file_i) {
 	ll num, num2;
 	ifstream in1, in2;
 
@@ -92,6 +96,109 @@ void merge_files(ll file_i) {
 	in1.close();
 	fout.close();
 	remove("data/tmp");
+}*/
+
+void min_heapify(ll in, ll len) {
+    ll left = (2 * in) + 1, right = (2 * in) + 2, mini;
+    if (left < len && min_heap[left] < min_heap[in])
+        mini = left;
+    else
+        mini = in;
+
+    if (right < len && min_heap[right] < min_heap[mini])
+        mini = right;
+
+    ll tmp, tmp2;
+    if (mini != in) {
+        tmp = min_heap[in];
+        min_heap[in] = min_heap[mini];
+        min_heap[mini] = tmp;
+
+        tmp2 = f_index[in];
+        f_index[in] = f_index[mini];
+        f_index[mini] = tmp2;
+        min_heapify(mini, len);
+    }
+    return;
+}
+void build_min_heap(ll len) {
+	ll i;
+    for(i = (len / 2) + 2; i >= 0; i--) {
+        min_heapify(i, len);
+    }
+}
+void final_merge_out(char* out_file, ll file_cnt) {
+	/*ifstream f_read[file_cnt];
+	ll cnt = 0, i;
+	for(i = 0; i < file_cnt; i++) {
+		f_read[i].open("data/" + to_string(i + 1));
+	}
+	ofstream f_out;
+	f_out.open(out_file);
+
+	HeapNode* heap_arr = new HeapNode[file_cnt]; 
+    for (i = 0; i < file_cnt; i++) { 
+  		f_read[i] >> heap_arr[i].el;
+        heap_arr[i].i = i; 
+    }
+    MinHeap new_heap(heap_arr, i); 
+ 
+  	while (cnt != i) { 
+        HeapNode root = new_heap.get_min(); 
+        f_out << root.el << " ";
+        if(f_read[root.i] >> root.el) {
+	        root.el = LLONG_MAX;
+	        cnt++;
+	    }
+        new_heap.replace_min(root); 
+    }  
+    for(i = 0; i < file_cnt; i++) 
+        f_read[i].close();   
+    f_out.close();*/ 
+    ofstream f_out;
+    f_out.open(out_file);
+    ifstream f_in[file_cnt];
+    ll i;
+    for(i = 0; i < file_cnt; i++) {
+        //string f_name = to_string(i);
+        f_in[i].open("data/" + to_string(i + 1));
+    }
+    ll num;
+    for(i = 0; i < file_cnt; i++) {
+        //fscanf(chunks[i],"%d",&tmp);
+        if(f_in[i] >> num) {
+            min_heap[i] = num;
+            f_index[i] = i;
+        } 
+    }
+    build_min_heap(file_cnt);
+    
+    ll k = 0, tmp;
+    while(k != file_cnt) {
+        //fprintf(final_out,"%d ",min_heap[0]);
+        f_out << min_heap[0] << " ";
+        
+        //fscanf(chunks[file_index[0]],"%d",&tmp_data);
+        if(f_in[f_index[0]] >> tmp)
+        	min_heap[0] = tmp;
+        else {
+            min_heap[0] = LLONG_MAX;
+            k++;
+        }
+        /*if(!feof(chunks[file_index[0]])){
+            min_heap[0] = tmp_data;
+        }
+        else{
+            min_heap[0] = INT_MAX;
+            iterator++;
+        }*/
+        min_heapify(0, file_cnt);
+    }
+    for(i = 0; i < file_cnt; i++) {
+        f_in[i].close();
+        remove(("data/" + to_string(i + 1)).c_str());
+    }
+    f_out.close();
 }
 
 
@@ -147,7 +254,6 @@ int main(int argc, char** argv) {
 		arr[k++] = num;
 	}
 	merge_sort(arr, 0, k - 1);
-
 	file_cnt++;
 	ofstream f_out;
 	f_out.open("data/" + to_string(file_cnt));
@@ -156,6 +262,15 @@ int main(int argc, char** argv) {
 	}
 	f_out.close();
 	free(arr);
+	/*for(i = 1; i <= file_cnt; i++) {
+		merge_final_left(i, i + 1);
+		merge_final_right(i, i + 1);
+	}*/
+
+	final_merge_out(argv[2], file_cnt);
+/*	for(i = 0; i < file_cnt; i++)
+		remove(("data/" + to_string(i + 1)).c_str());
+
 	ll len_last, out_len = 0, j;
 	i = 1;
 	while(i < file_cnt) {
@@ -163,13 +278,13 @@ int main(int argc, char** argv) {
 		i++;
 	}
 	f_out.open(argv[2]);
-	f_in.open("data/" + to_string(file_cnt));
+	f_in.open("data/" +  to_string(file_cnt));
 	while(f_in >> num) {
 		f_out << num << " ";
 	}
 	f_in.close();
 	f_out.close();
 	remove(("data/" + to_string(file_cnt)).c_str());
-
+*/
 	return 0;
 }
