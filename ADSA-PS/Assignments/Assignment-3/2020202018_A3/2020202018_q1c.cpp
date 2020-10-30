@@ -119,6 +119,14 @@ int main() {
     vector<ll> suf_arr = build_suffix_array(s, new_len);
     vector<ll> lcp_arr = calculate_lcp(s, suf_arr);
 
+    cout << "Suffix Array: ";
+    for(i = 0; i < suf_arr.size(); i++) 
+        cout << suf_arr[i] << " ";
+    cout << "\nLCP Array: ";
+    for(i = 0; i < lcp_arr.size(); i++)
+        cout << lcp_arr[i] << " ";
+    cout << endl;
+
     s = palindrome(suf_arr, lcp_arr, len, new_len, s);
     cout << s << endl;
     return 0;

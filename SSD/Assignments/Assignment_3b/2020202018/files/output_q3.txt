@@ -1,0 +1,6 @@
+Available slots: 
+Virat Kohli: ['N/A (DIFFERENT DATES)']
+Rohit Sharma: ['N/A (DIFFERENT DATES)']
+
+Slot Duration: 2 hour(s)
+['N/A (DIFFERENT DATES)']

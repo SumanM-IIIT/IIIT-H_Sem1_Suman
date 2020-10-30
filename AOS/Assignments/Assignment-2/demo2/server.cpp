@@ -17,18 +17,26 @@ int clientCount = 0;
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
 
-struct client{
+struct client {
 	int index;
 	int sockID;
 	struct sockaddr_in clientAddr;
 	unsigned int len;
+	//string username = "", password = "";
+	//bool is_login = true;
+	//string own_group = "";
+};
+
+typedef struct user {
 	string username = "", password = "";
 	bool is_login = true;
-
-};
+	string own_group = "";
+	vector<string> group_part;
+}User;
 
 struct client Client[1024];
 pthread_t my_thread[1024];
+vector<User> usr;
 
 void * doNetworking(void * ClientDetail){
 
@@ -62,16 +70,49 @@ void * doNetworking(void * ClientDetail){
 
 
 		if(cmd[0] == "create_user") {
-			if(Client[index].username == "" && Client[index].password == "") {
+			int flag = 0;
+			for(int i = 0; i < usr.size(); i++) {
+				if(usr[i].username == cmd[1]) {
+					flag = 1; 
+					break;
+				}
+			}
+			if(flag == 0) {
+				User u = new User();
+				u.username = cmd[1];
+				u.password = cmd[2];
+				usr.push_back(u);
+				cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << "> created successfully !!" << endl;
+			}
+			else 
+				cout << "Client-" << Client[index].index + 1 << ": GIVEN USER ALREADY PRESENT !!" << endl;
+			/*if(Client[index].username == "" && Client[index].password == "") {
 				Client[index].username = cmd[1];
 				Client[index].password = cmd[2];
 				cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << "> created successfully !!" << endl;
 			}
 			else 
-				continue;
+				continue;*/
 		}
 		if(cmd[0] == "login") {
-			if(Client[index].username == cmd[1] && Client[index].password == cmd[2]) {
+			int flag = 0;
+			for(int i = 0; i < usr.size(); i++) {
+				if(usr[i].username == cmd[1] && usr[i].password == cmd[2]) {
+					if(usr[i].is_login) {
+						usr[i].is_login = false;
+						cout << "Client-" << Client[index].index + 1 << ": User: <" << usr[i].username << "> LOGIN SUCCESSFUL !!" << endl;
+					}
+					else
+						cout << "User: <" << usr[i].username << "> ALREADY LOGGED IN SOMEWHERE..." << endl;
+					flag = 1; 
+					break;
+				}
+			}
+			if(flag == 0)
+				cout << "Client-" << Client[index].index + 1 << ": INVALID USERNAME/PASSWORD..." << endl;
+
+
+			/*if(Client[index].username == cmd[1] && Client[index].password == cmd[2]) {
 				if(Client[index].is_login) {
 					cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << ">: LOGGED IN successfully !!" << endl;
 					Client[index].is_login = false;
@@ -83,15 +124,39 @@ void * doNetworking(void * ClientDetail){
 			else {
 				cout << "Client-" << Client[index].index + 1 << "Invalid Credentials !!! Please try again..." << endl;
 				continue;
-			}
+			}*/
 		}
 		if(cmd[0] == "logout") {
-			if(!Client[index].is_login) {
+			int flag = 0;
+			for(int i = 0; i < usr.size(); i++) {
+				if(usr[i].username == cmd[1]) {
+					if(!usr[i].is_login) {
+						usr[i].is_login = true;
+						cout << "Client-" << Client[index].index + 1 << ": User: <" << usr[i].username << "> LOGOUT SUCCESSFUL !!" << endl;
+					}
+					else 
+						cout << "User: <" << usr[i].username << "> ALREADY LOGGED OUT..." << endl;
+					flag = 1;
+					break;
+				}
+			}
+			if(flag == 0)
+				cout << "Client-" << Client[index].index + 1 << ": INVALID USERNAME/PASSWORD..." << endl;
+			/*if(!Client[index].is_login) {
 				Client[index].is_login = true;
 				cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << ">: LOGOUT Successful !!" << endl;
 			}
 			else {
 				cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << ">: Already LOGGED OUT" << endl;
+			}*/
+		}
+		if(cmd[0] == "create_group") {
+			if(Client[index].own_group == "") {
+				Client[index].own_group = cmd[1];
+				cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << ">: Group Created: " << cmd[1] << endl;
+			}
+			else {
+				cout << "CANNOT create group. GROUP already present for this Client !!" << endl;
 			}
 		}
 		/*
@@ -110,9 +175,6 @@ void * doNetworking(void * ClientDetail){
 			}
 		}*/
 
-		if(strcmp(data, "create_user") == 0) {
-			cout << "User Created Successfully !!" << endl;
-		}
 
 		if(strcmp(data,"LIST") == 0){
 
