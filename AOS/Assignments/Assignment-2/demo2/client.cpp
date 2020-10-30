@@ -22,7 +22,38 @@ void * doRecieving(void * sockID){
 		int read = recv(clientSocket,data,1024,0);
 		data[read] = '\0';
 		printf("%s\n",data);
+		string tmp = "", input(data);
+		vector<string> cmd;
+		for(int i = 0; i < input.length(); i++) {
+			if(input[i] == ' ') {
+				if(tmp != "")
+					cmd.push_back(tmp);
+				tmp = "";
+				continue;
+			}
+			tmp += input[i];
+		}	
+		if(tmp != "")
+			cmd.push_back(tmp);
 
+		if(cmd.size() == 4) {
+			cout << "clientSocket: " << clientSocket << endl;
+			cout << "cmd[3]: " << cmd[3] << endl;
+			if(cmd[0] == "accept_group_join") {
+				//send(clientSocket,input.c_str(),1024,0);
+				//int read = recv(clientSocket,data,2048,0);
+				//data[read] = '\0';
+				//string d(data);
+				//cout << d;
+				string c;
+				cout << cmd[1] << " wants to join group: " << cmd[2] << "; Allow? (yes/no): \n";
+				cin >> c;
+				send(stoi(cmd[3]),c.c_str(),1024,0);
+			}
+		}
+		/*if(strcmp(data, "yes") == 0) {
+			cout << "My clientSocket: " << clientSocket << endl;
+		}*/
 	}
 
 }
@@ -37,7 +68,8 @@ int main(int argc, char** argv) {
 	serverAddr.sin_port = htons(atoi(argv[2]));
 	serverAddr.sin_addr.s_addr = inet_addr(argv[1]);
 
-	if(connect(clientSocket, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) == -1) return 0;
+	if(connect(clientSocket, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) == -1) 
+		return 0;
 
 	printf("Connection established ............\n");
 
@@ -50,6 +82,8 @@ int main(int argc, char** argv) {
 		//scanf("%s",input);
 		string input, tmp = "";
 		getline(cin, input);
+		char data[2048];
+		
 
 		vector<string> cmd;
 		for(int i = 0; i < input.length(); i++) {
@@ -84,19 +118,75 @@ int main(int argc, char** argv) {
 		else */
 		if(cmd[0] == "create_user") {
 			send(clientSocket,input.c_str(),1024,0);
-			//getline(cin, input);
-
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d;
 		}
 		if(cmd[0] == "login") {
 			send(clientSocket,input.c_str(),1024,0);
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d;
 		}
 		if(cmd[0] == "logout") {
 			send(clientSocket,input.c_str(),1024,0);
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d;
 		}
+		if(cmd[0] == "create_group") {
+			send(clientSocket,input.c_str(),1024,0);
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d;
+		}
+		if(cmd[0] == "fetch_groups") {
+			send(clientSocket,input.c_str(),1024,0);
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d;
+		}
+		if(cmd[0] == "request_group_join") {
+			send(clientSocket,input.c_str(),1024,0);
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d;
+		}
+		if(cmd[0] == "leave_group") {
+			send(clientSocket,input.c_str(),1024,0);
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d;
+		}
+		if(cmd[0] == "yes") {
+			send(clientSocket,input.c_str(),1024,0);
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d;
+		}
+		if(cmd[0] == "no") {
+			send(clientSocket,input.c_str(),1024,0);
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d;
+		}
+		
 		if(cmd[0] == "LIST"){
 
 			send(clientSocket,input.c_str(),1024,0);
 
+		}
+		if(cmd[0] == "exit") {
+			break;
 		}
 		else if(cmd[0] == "SEND"){
 

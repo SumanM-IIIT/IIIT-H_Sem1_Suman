@@ -22,43 +22,45 @@ struct client {
 	int sockID;
 	struct sockaddr_in clientAddr;
 	unsigned int len;
-	//string username = "", password = "";
+	string username = "", password = "";
 	//bool is_login = true;
 	//string own_group = "";
 };
+typedef struct group {
+	string owner, name;
+	vector<string> members;
+} Group;
 
 typedef struct user {
 	string username = "", password = "";
 	bool is_login = true;
-	string own_group = "";
-	vector<string> group_part;
-}User;
+	vector<string> group_part, own_group;
+} User;
 
 struct client Client[1024];
+vector<Group*> groups;
 pthread_t my_thread[1024];
-vector<User> usr;
+vector<User*> usr;
+map<string, string> group_map;
 
 void * doNetworking(void * ClientDetail){
 
 	struct client* clientDetail = (struct client*) ClientDetail;
-	int index = clientDetail -> index;
-	int clientSocket = clientDetail -> sockID;
+	int index = clientDetail->index;
+	int clientSocket = clientDetail->sockID;
 
-	printf("Client %d connected.\n",index + 1);
+	printf("Client %d connected.\n", index + 1);
 
-	while(1){
-
+	while(1) {
 		char data[1024], output[1024];
 		int read = recv(clientSocket,data,1024,0);
-		data[read] = '\0';
-		
+		data[read] = '\0';	
 		string tmp = "";
 		vector<string> cmd;
 		for(int i = 0; data[i] != '\0'; i++) {
 			if(data[i] == ' ') {
 				if(tmp != "")
 					cmd.push_back(tmp);
-				//cout << "Aise hi: " << tmp << endl;
 				tmp = "";
 				continue;
 			}
@@ -67,116 +69,214 @@ void * doNetworking(void * ClientDetail){
 		if(tmp != "")
 			cmd.push_back(tmp);
 
-
-
 		if(cmd[0] == "create_user") {
 			int flag = 0;
 			for(int i = 0; i < usr.size(); i++) {
-				if(usr[i].username == cmd[1]) {
+				if(usr[i]->username == cmd[1]) {
 					flag = 1; 
 					break;
 				}
 			}
+			string msg = "";
 			if(flag == 0) {
-				User u = new User();
-				u.username = cmd[1];
-				u.password = cmd[2];
+				User *u = new User();
+				u->username = cmd[1];
+				u->password = cmd[2];
 				usr.push_back(u);
-				cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << "> created successfully !!" << endl;
+				msg += "Client-" + to_string(Client[index].index + 1) + ": User: <" + cmd[1] + "> created successfully !!\n";
+				cout << msg;
 			}
 			else 
-				cout << "Client-" << Client[index].index + 1 << ": GIVEN USER ALREADY PRESENT !!" << endl;
-			/*if(Client[index].username == "" && Client[index].password == "") {
-				Client[index].username = cmd[1];
-				Client[index].password = cmd[2];
-				cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << "> created successfully !!" << endl;
-			}
-			else 
-				continue;*/
+				msg += "Client-" + to_string(Client[index].index + 1) + ": GIVEN USER ALREADY PRESENT !!\n";
+			send(Client[index].sockID, msg.c_str(), 2048, 0);
 		}
 		if(cmd[0] == "login") {
 			int flag = 0;
+			string msg = "";
 			for(int i = 0; i < usr.size(); i++) {
-				if(usr[i].username == cmd[1] && usr[i].password == cmd[2]) {
-					if(usr[i].is_login) {
-						usr[i].is_login = false;
-						cout << "Client-" << Client[index].index + 1 << ": User: <" << usr[i].username << "> LOGIN SUCCESSFUL !!" << endl;
+				if(usr[i]->username == cmd[1] && usr[i]->password == cmd[2]) {
+					if(usr[i]->is_login) {
+						usr[i]->is_login = false;
+						Client[index].username = cmd[1];
+						Client[index].password = cmd[2];
+						msg += "Client-" + to_string(Client[index].index + 1) + ": User: <" + usr[i]->username + "> LOGIN SUCCESSFUL !!\n";
 					}
 					else
-						cout << "User: <" << usr[i].username << "> ALREADY LOGGED IN SOMEWHERE..." << endl;
+						msg += "User: <" + usr[i]->username + "> ALREADY LOGGED IN SOMEWHERE...\n";
+					cout << msg;
 					flag = 1; 
 					break;
 				}
 			}
 			if(flag == 0)
-				cout << "Client-" << Client[index].index + 1 << ": INVALID USERNAME/PASSWORD..." << endl;
-
-
-			/*if(Client[index].username == cmd[1] && Client[index].password == cmd[2]) {
-				if(Client[index].is_login) {
-					cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << ">: LOGGED IN successfully !!" << endl;
-					Client[index].is_login = false;
-				}
-				//cout << "User: <" << cmd[1] << "> created successfully !!" << endl;
-				else
-					cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << ">: Already LOGGED In..." << endl;
-			}
-			else {
-				cout << "Client-" << Client[index].index + 1 << "Invalid Credentials !!! Please try again..." << endl;
-				continue;
-			}*/
+				msg += "Client-" + to_string(Client[index].index + 1) + ": INVALID USERNAME/PASSWORD...\n";
+			send(Client[index].sockID, msg.c_str(), 2048, 0);
 		}
 		if(cmd[0] == "logout") {
 			int flag = 0;
+			string msg = "";
 			for(int i = 0; i < usr.size(); i++) {
-				if(usr[i].username == cmd[1]) {
-					if(!usr[i].is_login) {
-						usr[i].is_login = true;
-						cout << "Client-" << Client[index].index + 1 << ": User: <" << usr[i].username << "> LOGOUT SUCCESSFUL !!" << endl;
+				if(usr[i]->username == Client[index].username) {
+					if(!usr[i]->is_login) {
+						usr[i]->is_login = true;
+						Client[index].username = "";
+						Client[index].password = "";
+						msg += "Client-" + to_string(Client[index].index + 1) + ": User: <" + usr[i]->username + "> LOGOUT SUCCESSFUL !!\n";
+						cout << msg;
 					}
 					else 
-						cout << "User: <" << usr[i].username << "> ALREADY LOGGED OUT..." << endl;
+						msg += "User: <" + usr[i]->username + "> ALREADY LOGGED OUT...\n";
 					flag = 1;
 					break;
 				}
 			}
 			if(flag == 0)
-				cout << "Client-" << Client[index].index + 1 << ": INVALID USERNAME/PASSWORD..." << endl;
-			/*if(!Client[index].is_login) {
-				Client[index].is_login = true;
-				cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << ">: LOGOUT Successful !!" << endl;
-			}
-			else {
-				cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << ">: Already LOGGED OUT" << endl;
-			}*/
+				msg += "No User was LOGGED IN...\n";
+			send(Client[index].sockID, msg.c_str(), 2048, 0);
 		}
 		if(cmd[0] == "create_group") {
-			if(Client[index].own_group == "") {
-				Client[index].own_group = cmd[1];
-				cout << "Client-" << Client[index].index + 1 << ": User: <" << cmd[1] << ">: Group Created: " << cmd[1] << endl;
-			}
-			else {
-				cout << "CANNOT create group. GROUP already present for this Client !!" << endl;
-			}
+			string msg = "";
+			//int flag = 0;
+			if(Client[index].username != "") {
+				//int flag = 0;
+				for(int i = 0; i < usr.size(); i++) {
+					if(Client[index].username == usr[i]->username) {
+						//if(usr[i]->own_group == "") {
+							usr[i]->own_group.push_back(cmd[1]);
+							usr[i]->group_part.push_back(cmd[1]);
+							//usr[i]->my_group_members.push_back(usr[i]->username);
+							Group* g = new Group();
+							g->name = cmd[1];
+							g->owner = usr[i]->username;
+							g->members.push_back(usr[i]->username);
+							groups.push_back(g);
+							group_map.insert(pair<string, string>(cmd[1], usr[i]->username));
+						/*}
+						else {
+							cout << "Client-" << Client[index].index + 1 << ": User: <" << usr[i]->username << "> already CREATED/OWNS a group..." << endl;
+						}*/
+						msg += "Client-" + to_string(Client[index].index + 1) + ": User: <" + usr[i]->username + "> has CREATED and OWNS the group: " + cmd[1] + "\n";
+						//flag = 1;
+						break;
+					}
+				}
+			} 
+			else 
+				msg += "Client-" + to_string(Client[index].index + 1) + ": NO USER LOGGED IN currently to create a group...\n";
+			send(Client[index].sockID, msg.c_str(), 2048, 0);
 		}
-		/*
-		if(cmd[0] == "login") {
-			if(Client[index].is_login) {
-				if(cmd[1] == Client[index].username && cmd[2] == Client[index].password)
-					cout << Client[index].username << " LOGGED IN successfully !!" << endl;
-				else {
-					cout << "Invalid Username/Password !!" << endl;
-					continue;
+		if(cmd[0] == "fetch_groups") {
+			string msg = "";
+			int flag = 0;
+			for(int i = 0; i < usr.size(); i++) {
+				if(Client[index].username == usr[i]->username) {
+					map<string, string>::iterator itr;
+					msg += "All Groups in Server: \nGROUP\tOWNER\n";
+					//cout << "All Groups in Server: " << endl;
+					//cout << "GROUP\tOWNER" << endl;
+					for(itr = group_map.begin(); itr != group_map.end(); itr++) {
+						msg += itr->first + "\t" + itr->second + "\n";
+						//cout << itr->first << "\t" << itr->second << endl;
+					}
+					flag = 1;
+					break;
 				}
 			}
-			else {
-				cout << "Already Logged In..." << endl;
-				continue;
+			if(flag == 0)
+				msg += "LOGIN first to see all the groups...\n";
+			send(Client[index].sockID, msg.c_str(), 2048, 0);
+		}
+		if(cmd[0] == "yes") {
+			cout << "Server Side YES::::\n";
+		}
+		if(cmd[0] == "no") {
+			cout << "Server Side NO::::\n";
+		}
+		if(cmd[0] == "request_group_join") {
+			string msg = "";
+			int flag = 0, dem = 0;
+			for(int i = 0; i < usr.size(); i++) {
+				if(Client[index].username == usr[i]->username) {
+					map<string, string>::iterator itr;
+					for(itr = group_map.begin(); itr != group_map.end(); itr++) {
+						if(itr->first == cmd[1]) {
+							string owner = itr->second;
+							int flag2 = 0, owner_sockid;
+							for(int j = 0; j < 1024; j++) {
+								if(Client[j].username == owner) {
+									owner_sockid = Client[j].sockID;
+									flag2 = 1;
+									break;
+								}
+							}
+							if(flag2 == 1) {
+								char outp[1024];
+								msg += "accept_group_join " + Client[index].username + " " + cmd[1] + " " + to_string(clientSocket) + "\n";
+								send(owner_sockid, msg.c_str(), 2048, 0);
+								int rcv = recv(owner_sockid, outp, 1024, 0);
+								outp[rcv] = '\0';
+								string t(outp);
+								cout << "Faltu outp: " << t << endl;
+								if(strcmp(outp, "yes") == 0) {
+									for(int k = 0; k < groups.size(); k++) {
+										if(groups[k]->name == cmd[1] && groups[k]->owner == owner) {
+											groups[k]->members.push_back(Client[index].username);
+											usr[i]->group_part.push_back(cmd[1]);
+											msg += "Group Owner: <" + owner + "> ACCEPTED your Request !!\n";
+											break;
+										}
+									}
+								}
+								else if(strcmp(outp, "no") == 0) {
+									msg += "Group Owner: <" + owner + "> REJECTED your Request. Please try again later...\n";
+								}
+								else
+									msg += "Faltu Option !!\n";
+								/*char data[1024], output[1024];
+								int read = recv(clientSocket,data,1024,0);
+								data[read] = '\0';	
+								string tmp = "";
+								vector<string> cmd;
+								for(int i = 0; data[i] != '\0'; i++) {
+									if(data[i] == ' ') {
+										if(tmp != "")
+											cmd.push_back(tmp);
+										tmp = "";
+										continue;
+									}
+									tmp += data[i];
+								}
+								if(tmp != "")
+									cmd.push_back(tmp);*/
+
+							}
+							else {
+								msg += "Group Owner: <" + owner + "> is currently OFFLINE. Please try again later...\n";
+								//send(Client[index].sockID, msg.c_str(), 2048, 0);
+							}
+							flag = 1;
+							break;
+						}
+					}
+					if(flag == 0) {
+						msg += "Group NOT Present...\n";
+					}
+					dem = 1;
+					break;
+				}
 			}
+			if(dem == 0)
+				msg += "LOGIN first to enter a group...\n";
+			//msg += "last\n";
+			send(Client[index].sockID, msg.c_str(), 2048, 0);
+		}
+		/*if(cmd[0] == "leave_group") {
+			
+		}
+		if(cmd[0] == "accept_group_join") {
+			
 		}*/
-
-
-		if(strcmp(data,"LIST") == 0){
+		if(strcmp(data,"LIST") == 0) {
 
 			int l = 0;
 
