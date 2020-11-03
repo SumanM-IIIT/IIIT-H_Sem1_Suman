@@ -1,0 +1,95 @@
+<!doctype html>
+<html>
+	<head>
+		<title>VLAB-PQ-Exercises</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<link rel="stylesheet" type="text/css" href="css/style.css">
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+	</head>
+	<body>
+		<div class="div1">
+			<span class="heading1"><b>VLAB - Product Quality</b></span>
+		</div>
+		<div class="div2">
+			<nav>
+				<div class="container">
+					<ul>
+						<li><a href="index.html">HOME</a></li>
+						<li><a href="about.html">EXERCISES</a></li>
+					</ul>
+				</div>
+			</nav>
+		</div>
+		<div class="div_container">
+			<div class="ed" id="editor"></div>
+			<div class="ed2" id="editor2"></div>
+			<br><br>
+			<span>OUTPUT:</span><br>
+			<iframe class="res" id="result" frameBorder="0"></iframe>
+		</div>
+		<script src="js/ace.js" type="text/javascript" charset="utf-8"></script>
+		<script>
+			function update() {
+				var shouldShow = !editor.session.getValue().length;
+				var node = editor.renderer.emptyMessageNode;
+				if (!shouldShow && node) {
+					editor.renderer.scroller.removeChild(editor.renderer.emptyMessageNode);
+					editor.renderer.emptyMessageNode = null;
+				} else if (shouldShow && !node) {
+					node = editor.renderer.emptyMessageNode = document.createElement("div");
+					node.textContent = "Add HTML here (and JS inside SCRIPT tag)..."
+					node.className = "ace_emptyMessage"
+					node.style.padding = "0 9px"
+					node.style.position = "absolute"
+					node.style.zIndex = 9
+					node.style.opacity = 0.5
+					editor.renderer.scroller.appendChild(node);
+				}
+				var shouldShow2 = !editor2.session.getValue().length;
+				var node2 = editor2.renderer.emptyMessageNode;
+				if (!shouldShow2 && node2) {
+					editor2.renderer.scroller.removeChild(editor2.renderer.emptyMessageNode);
+					editor2.renderer.emptyMessageNode = null;
+				} else if (shouldShow2 && !node2) {
+					node2 = editor2.renderer.emptyMessageNode = document.createElement("div");
+					node2.textContent = "Add CSS here..."
+					node2.className = "ace_emptyMessage"
+					node2.style.padding = "0 9px"
+					node2.style.position = "absolute"
+					node2.style.zIndex = 9
+					node2.style.opacity = 0.5
+					editor2.renderer.scroller.appendChild(node2);
+				}
+			
+				var res = document.getElementById('result').contentWindow.document;
+				res.open();
+				res.write(editor.getValue());
+				res.write('<style>'+editor2.getValue()+'</style>');
+				res.close();
+			}
+			var editor = ace.edit("editor");
+			editor.setTheme("ace/theme/clouds");
+			editor.session.setMode("ace/mode/html");
+			var editor2 = ace.edit("editor2");
+			editor2.setTheme("ace/theme/clouds");
+			editor2.session.setMode("ace/mode/css");
+			
+			editor.getSession().on('change', function() {
+				update();
+			});
+			editor2.getSession().on('change', function() {
+				update();
+			});
+			update();
+		</script>
+		<!--script>
+			function setEditor() {
+				window.eh = ace.edit("editor");
+				eh.setTheme("ace/theme/clouds");
+				eh.setMode("ace/mode/javascript");
+			}
+			setEditor();
+		</script-->
+		<script src="js/jquery.js"></script>
+	</body>
+</html>

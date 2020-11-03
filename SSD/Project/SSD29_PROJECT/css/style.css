@@ -1,0 +1,171 @@
+body {
+	margin: 3% 15% 5% 15%;
+	background: linear-gradient(to left, #ADD8E6, white);
+}
+
+th, td {
+	text-align: left;
+}
+th {
+	white-space: nowrap;
+}
+
+.cn {
+	float: right;
+}
+a {
+	text-decoration: none;
+}
+
+.connect_img {
+	border-radius: 50%;
+}	
+.connect_img:hover {
+	transform: scale(1.2);
+}
+
+.heading1 {
+	font-size: 35px;
+	color: black;
+}
+.div3 {
+	padding: 3%;
+	background-color: #e9ebe2;
+}
+.div_container {
+	padding: 3%;
+	background-color: #e9ebe2;
+	height: 100%;
+	width: auto;
+	white-space: nowrap;
+	overflow: hidden;
+	position: relative;
+}
+.ed {
+	float: left;
+	margin-left: 2.5%;
+	height: 50%;
+	min-height: 50vh;
+	width: 45%;
+	display: inline-block;
+}
+.ed2 {
+	margin-left: 5%;
+	height: 50%;
+	min-height: 50vh;
+	width: 45%;
+	display: inline-block;
+}
+.res {
+	background-color: white;
+	min-height: 30vh;
+	width: 100%;
+	height: auto;
+	display: inline-block;
+}
+.img1 {
+	float:left;
+	padding: 1%;
+	width: 100%;
+	max-width: 250px;
+	height: auto;
+	border-radius: 50%;
+}
+h2 {
+	font-family: arial;
+}
+p {
+	font-family: calibri; 
+	text-align: justify;
+	font-size: 18px;
+}
+nav { 
+background: linear-gradient(#32527b, black); 
+}
+
+nav ul {
+  font-size: 0;
+  margin: 0;
+  padding: 0;
+}
+
+nav ul li {
+  display: inline-block;
+  position: relative;
+}
+
+nav ul li a {
+  color: #fff;
+  display: block;
+  font-size: 14px;
+  padding: 15px;
+  transition: 0.3s linear;
+  text-decoration: none;
+}
+
+
+nav ul li:hover { 
+background: linear-gradient(black, #5196b4); 
+}
+
+nav ul li ul {
+  border-bottom: 5px solid #a62c2b;
+  display: none;
+  position: absolute;
+  width: 250px;
+}
+
+nav ul li ul li {
+  border-top: 1px solid #a62c2b;
+  display: block;
+}
+
+nav ul li ul li:first-child {
+	border-top: none;
+}
+
+nav ul li ul li a {
+  background: #373737;
+  display: block;
+  text-align: center;
+  padding: 10px 14px;
+  text-decoration: none;
+}
+
+nav ul li ul li a:hover {
+	background: linear-gradient(black, #a62c2b);
+}
+
+div.gallery {
+  margin: 1%;
+  border: 1px solid #ccc;
+  float: left;
+  width: 30%;
+}
+
+div.gallery:hover {
+  border: 1px solid #777;
+  transform: scale(1.1);
+}
+
+div.gallery img {
+  width: 100%;
+  height: auto;
+}
+
+.my_canvas_div {
+	margin: auto;
+}
+/*canvas {
+	padding: 0;
+    margin: auto;
+    display: block;
+	float: center;
+}*/
+.my_canvas_div {
+	padding: 1%;
+	float: left;
+}
+.counter {
+	float: right;
+}
