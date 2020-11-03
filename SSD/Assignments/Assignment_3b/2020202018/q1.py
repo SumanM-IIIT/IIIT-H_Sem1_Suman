@@ -1,19 +1,6 @@
 import json
 import sys
 
-with open(sys.argv[1]) as f:
-	json_dict = json.load(f)
-
-emp_no = int(input("Enter the no. of employees: "))
-empl_list = []
-print("Enter Employees: ")
-for i in range(0, emp_no):
-	tmp = int(input())
-	empl_list.append(tmp)
-
-
-root_val = int(json_dict['L0'][0]['name'])
-
 def parent(emp):
 	#par = emp
 	if emp == root_val:
@@ -33,13 +20,25 @@ def find_depth(child, par):
 		child = parent(child)
 	return count
 
+with open(sys.argv[1]) as f:
+	json_dict = json.load(f)
+
+inp_str = input()
+is_list = inp_str.split()
+emp_no = int(is_list[0])
+empl_list = []
+for i in range(0, emp_no):
+	empl_list.append(int(is_list[i + 1]))
+
+root_val = int(json_dict['L0'][0]['name'])
+
 emp_par_tmp = []
 res = None
 flag = 0
 for i in range(0, len(empl_list)):
 	emp_par_tmp.append(parent(empl_list[i]))
 	if emp_par_tmp[i] is None:
-		print('Common Parent NOT AVAILABLE')
+		print('Common Leader NOT AVAILABLE')
 		flag = 1
 		break	
 if(flag == 0):
@@ -58,7 +57,7 @@ if(flag == 0):
 				emp_par_tmp[j] = parent(emp_par_tmp[j])	
 		res = x
 
-	print("Common Parent: ", res)
+	print("Common Leader:", res)
 	
 	for e in empl_list:
-		print(find_depth(e, res))
+		print("Leader", res, "is", str(find_depth(e, res)) + "-level(s) above employee", e)

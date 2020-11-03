@@ -2,6 +2,8 @@ import sys
 
 month_dict = {'jan': 1, 'feb': 2, 'mar': 3, 'apr': 4, 'may': 5, 'jun': 6, 'jul': 7, 'aug': 8, 'sep': 9, 'oct': 10, 'nov': 11, 'dec': 12}
 days_of_months = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+format_list1 = ['dd/mm/yyyy', 'dd.mm.yyyy', 'dd-mm-yyyy']
+format_list2 = ['mm/dd/yyyy', 'mm.dd.yyyy', 'mm-dd-yyyy']
 
 def date_format(actual_d):
 	date = None
@@ -72,9 +74,16 @@ actual_dates = []
 for i in dates:
 	actual_dates.append(i.strip().split(':')[1].strip())
 
-#print(actual_dates)
-date1 = date_format2(actual_dates[0])
-date2 = date_format2(actual_dates[1])
+inp_format = sys.argv[2]
+if inp_format in format_list1:
+	date1 = date_format(actual_dates[0])
+	date2 = date_format(actual_dates[1])
+elif inp_format in format_list2:
+	date1 = date_format2(actual_dates[0])
+	date2 = date_format2(actual_dates[1])
+else:
+	print("INVALID DATE FORMAT !!")
+	exit()
 
 diff = date_diff(date1, date2)
 op_line = 'Date Difference: ' + str(diff) + ' Day(s)'
