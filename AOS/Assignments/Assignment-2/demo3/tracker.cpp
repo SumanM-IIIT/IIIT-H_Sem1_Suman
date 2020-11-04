@@ -1,6 +1,7 @@
 #include <iostream>
 #include <bits/stdc++.h>
 #include <fstream>
+#include <pthread.h>
 using namespace std;
 
 typedef long long ll;
@@ -10,15 +11,115 @@ typedef long long ll;
 
 typedef struct curr_tracker_info {
 	int port;
-	char ip[16];
+	char ip[20];
 } Tracker;
+
+typedef struct peer_info {
+	char ip[20];
+	int port;
+	vector<char> chunk_v;
+} peers;
+
+typedef struct user_info {
+	char username[100], password[100], ip[20];
+	int port;
+} UserInfo;
+
+int curr_user = -1, curr_group = -1, group_count = 0, user_count = 0;
+map<int, int> login_status_map;
+map<string, vector<peers>> file_peer_map; 
+map<int, UserInfo> user_info_map;
 
 void* file_opr(void *args) {
 	int instr, sock_fd = *((int *)args);
 
 	recv(sock_fd, &instr, sizeof(instr), 0);
 
-	
+	if(instr == 3) { //LOGOUT
+		login_status_map[curr_user] = 0;
+		curr_user = -1;
+		send(sock_fd, &curr_user, sizeof(curr_user), 0);
+		return NULL;
+	}
+	if(instr == 10) { //SHOW FILES
+		int size_m = file_peer_map.size();
+		send(sock_fd, &size_m, sizeof(size_m), 0);
+		for(auto i = file_peer_map.begin(); i != file_peer_map.end(); i++) {
+			send(sock_fd, i->first.c_str(), sizeof(i->first.c_str()), 0);
+		}
+	}
+	if(instr == 4) { //CREATE USER
+		user_count++;
+		int ackn, port_tmp;
+		char username[100], password[100], ip_tmp[20];
+
+		recv(sock_fd, &port_tmp, sizeof(port_tmp), 0);
+		recv(sock_fd, ip_tmp, sizeof(ip_tmp), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+		recv(sock_fd, username, sizeof(username), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+		recv(sock_fd, password, sizeof(password), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+
+		cout << ip_tmp << ":" << port_tmp << " Uname: " << username << ", Pswd: " << password << endl;
+
+		UserInfo u1;
+		u1.port = port_tmp;
+		strcpy(u1.ip, ip_tmp);
+		strcpy(u1.username, username);
+		strcpy(u1.password, password);
+
+		user_info_map.insert(make_pair(user_count, u1));
+	}
+	if(instr == 5) { //LOGIN
+		char username[100], password[100], ip_tmp2[20];
+		int ackn, port_tmp2;
+
+		recv(sock_fd, &port_tmp2, sizeof(port_tmp2), 0);
+		recv(sock_fd, ip_tmp2, sizeof(ip_tmp2), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+		recv(sock_fd, username, sizeof(username), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+		recv(sock_fd, password, sizeof(password), 0);
+		
+		cout << ip_tmp2 << ":" << port_tmp2 << " Uname: " << username << ", Pswd: " << password << endl;		
+
+		for(auto i = user_info_map.begin(); i != user_info_map.end(); i++) {
+			int u_no = i->first;
+			UserInfo &u2 = i->second;
+			strcpy(u2.ip, ip_tmp2);
+			u2.port_tmp2 = port;
+
+			if(strcmp(username, u2.username) == 0 && strcmp(password, u2.password) == 0) {
+				if(login_status_map.find(u_no) == login_status_map.end()) {
+					login_status_map.insert(make_pair(u_no, 1));
+					curr_user = u_no;
+					send(sock_fd, &curr_user, sizeof(curr_user), 0);
+				}
+				else {
+					if(login_status_map[u_no] == 1) {
+						int ack_tmp = 0;
+						send(sock_fd, &ack_tmp, sizeof(ack_tmp), 0);
+					}
+					else {
+						login_status_map[u_no] = 1;
+						curr_user = u_no;
+						send(sock_fd, &curr_user, sizeof(curr_user), 0);
+					}
+				}
+				return NULL;
+			}
+		}
+		int ack_tmp = -1;
+		send(sock_fd, &ack_tmp, sizeof(ack_tmp), 0);
+		return NULL;
+	}
+	if(instr == 1) { //UPLOAD
+		continue;
+	}
+	if(instr == 2) { //UPLOAD
+		continue;
+	}	
 }
 
 
@@ -61,7 +162,7 @@ void* listener(void* server_args) {
 		cout << "Connection Established..." << endl;
 
 		pthread_t t_new;
-		if(pthread_create(&t_new, NULL, file_opr, (vdoi *)&sock_fd)) {
+		if(pthread_create(&t_new, NULL, file_opr, (void *)&sock_fd)) {
 			cout << "SOME ERROR !!" << endl;
 			exit(1);
 		}
