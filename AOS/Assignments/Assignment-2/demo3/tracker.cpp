@@ -22,6 +22,11 @@ typedef struct peer_info {
 	vector<char> chunk_v;
 } peers;
 
+typedef struct FileInfo {
+	int len;
+	string sha1;
+} file_info;
+
 typedef struct user_info {
 	char username[100], password[100], ip[20];
 	int port;
@@ -31,6 +36,7 @@ int logout = 0, curr_user = -1, curr_group = -1, group_count = 0, user_count = 0
 map<int, int> login_status_map;
 map<string, vector<peers>> file_peer_map; 
 map<int, UserInfo> user_info_map;
+map<string, file_info> file_info_map;
 
 void* file_opr(void *args) {
 	int instr, sock_fd = *((int *)args);
@@ -117,7 +123,71 @@ void* file_opr(void *args) {
 		return NULL;
 	}
 	if(instr == 1) { //UPLOAD
-		cout << "Upload !!" << endl;
+		int port, group_id, len, chk_len, ackn = 0;
+		char ip[20], filename[100];
+
+		memset(ip, '\0', sizeof(ip));
+		memset(filename, '\0', sizeof(filename));
+
+		recv(sock_fd, &port, sizeof(port), 0);
+		recv(sock_fd, &group_id, sizeof(group_id), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+		recv(sock_fd, ip, sizeof(ip), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+		recv(sock_fd, filename, sizeof(filename), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+		recv(sock_fd, &len, sizeof(len), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+
+		chk_len = ceil(len * 1.0 / CHUNK);
+		char chk[chk_len + 1];
+		memset(chk, '\0', sizeof(chk));
+
+		recv(sock_fd, chk, chk_len, 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+
+		//cout << chk << " " << chk_len << endl;
+		vector<char>  char_v;
+		string s_tmp = "";
+		for(int i = 0; i < chk_len; i++) {
+			char_v.push_back(chk[i]);
+		}
+		for(int i = 0; i < strlen(filename); i++) {
+			s_tmp += filename[i];
+		}
+		file_info fi;
+		fi.len = len;
+		fi.sha1 = "temp";
+		file_info_map.insert(make_pair(s_tmp, fi));
+
+		peers ps;
+		ps.port = port;
+		ps.chunk_v = char_v;
+
+		map<string, vector<peers>>::iterator itr = file_peer_map.find(s_tmp);
+
+		if(itr != file_peer_map.end()) {
+			itr->second.push_back(ps);
+		}
+		else {
+			vector<peer_info> pi_tmp;
+			pi_tmp.push_back(ps);
+			file_peer_map.insert(make_pair(s_tmp, pi_tmp));
+		}
+
+		/*for(auto i = file_info_map.begin(); i != file_info_map.end(); i++) 
+			cout << i->first << " " << i->second.len << endl;*/
+		for(auto i = file_peer_map.begin(); i != file_peer_map.end(); i++) {
+			cout << i->first << endl;
+			for(int j = 0; j < i->second.size(); j++) {
+				vector<peers> &vp = i->second;
+				//cout << vp[j].ip << " " << vp[j].port << endl;
+				for(int k = 0; k < vp[j].chunk_v.size(); k++ ) {
+					cout << vp[j].chunk_v[k];
+				}
+				cout << endl;
+			}
+		}
 	}
 	if(instr == 2) { //DOWNLOAD
 		cout << "Download !!" << endl;

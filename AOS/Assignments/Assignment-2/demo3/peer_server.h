@@ -31,6 +31,63 @@ typedef struct ChunkInfo {
 
 int curr_user = -1;
 
+void* file_copy(void* arg) {
+	chunk_info *ci = (chunk_info*)arg;
+	int file_size, flag, size_dem = ci->len, port_dem = ci->port, start_dem = ci->start, peer_no_dem = ci->peer_no;
+	char *ip_dem = ci->ip;
+	char *file_src = ci->rd, *file_dest = ci->wr;
+
+	struct sockaddr_in address_server;
+	address_server.sin_family = AF_INET;
+	address_server.sin_port = htons(port_dem);
+	address_server.sin_addr.s_addr = inet_addr(ip_dem);
+
+	int sock_dem = socket(AF_INET, SOCK_STREAM, 0);
+	if(connect(sock_dem, (struct sockaddr *)&address_server, sizeof(address_server)) < 0) {
+		cout << "CONNECTION FAILED WHILE DOWNLOADING !! Exiting.." << endl;
+		exit(1);
+	}
+	flag = 2;
+	send(sock_dem, &flag, sizeof(flag), 0);
+	sleep(0.5);
+	send(sock_dem, &peer_no_dem, sizeof(peer_no_dem), 0);
+	sleep(0.5);
+	send(sock_dem, &start_dem, sizeof(start_dem), 0);
+	sleep(0.5);
+	send(sock_dem, file_src, strlen(file_src), 0);
+	sleep(0.5);
+
+	FILE* f_dem = fopen(file_dest, "rb+");
+	file_size = size_dem / CHUNK;
+
+	int size2, file_size_act = file_size;
+	if(size_dem % CHUNK != 0)
+		file_size_act++;
+
+	char actual_buffer[CHUNK];
+	memset(actual_buffer, '\0', CHUNK);
+	size2 = ceil(size_dem / peer_no_dem);
+
+	for(int i = start_dem; i < file_size_act * CHUNK; i += peer_no_dem * CHUNK) {
+		int ackn = 0, tmp = 0;
+		for(int j = i; (j < i + CHUNK) && (j < size_dem); j += BUFFER) {
+			char buff2[BUFFER];
+			memset(buff2, '\0', BUFFER);
+			int k = recv(sock_dem, buff2, BUFFER, 0);
+
+			for(int m = 0; m < k; m++) 
+				actual_buffer[tmp++] = buff2[m];
+
+			size2 -= k;
+			send(sock_dem, &ackn, sizeof(ackn), 0);
+		}
+		fseek(f_dem, i, SEEK_SET);
+		fwrite(actual_buffer, sizeof(char), tmp, f_dem);
+	}
+	fclose(f_dem);
+	cout << "FILE COPY THREAD DONE !!" << endl;
+	return NULL;
+}
 void* client_request(void* arg) {
 	client_info* c = (client_info*)arg;
 	char tracker_ip[20], tracker_ip2[20];
@@ -84,7 +141,9 @@ void* client_request(void* arg) {
 		address_server.sin_port = htons(tracker_port);
 		address_server.sin_addr.s_addr = inet_addr(tracker_ip);
 
-		int flag, flag2, sock = socket(AF_INET, SOCK_STREAM, 0);
+		int flag, flag2;
+		int sock = socket(AF_INET, SOCK_STREAM, 0);
+
 		if(connect(sock, (struct sockaddr *)&address_server, sizeof(address_server)) < 0) {
 			cout << "Tracker-1 Connection Failed !!\nConnecting to Tracker-2..." << endl;
 			flag = 1;
@@ -243,7 +302,7 @@ void* client_request(void* arg) {
 				continue;
 			} 
 
-			char *ch1_tmp, f_cli[100], actual_buffer[BUFFER];
+			char ch1_tmp[100], f_cli[100], actual_buffer[BUFFER];
 			strcpy(ch1_tmp, ch1);
 
 			sprintf(f_cli, "%s%s", ch2, ch1_tmp);
@@ -268,7 +327,52 @@ void* client_request(void* arg) {
 			}
 			fclose(file1);
 
+			memset(ch1_tmp, '\0', 100);
+			strcpy(ch1_tmp, ch1);
+
+			int size_ac = ceil(pos * 1.0 / CHUNK);
+			char ch_arr[size_ac + 1];
+			memset(ch_arr, '0', size_ac);
+			ch_arr[size_ac] = '\0';
+
+			int ackn = 0;
+
+			send(sock, &(c->port), sizeof(c->port), 0);
+			send(sock, &group_id, sizeof(group_id), 0);
+			recv(sock, &ackn, sizeof(ackn), 0);
+			send(sock, c->ip, strlen(c->ip), 0);
+			recv(sock, &ackn, sizeof(ackn), 0);
+			send(sock, ch1_tmp, strlen(ch1_tmp), 0);
+			recv(sock, &ackn, sizeof(ackn), 0);
+			send(sock, &pos, size(pos), 0);
+			recv(sock, &ackn, sizeof(ackn), 0);
 			
+			send(sock, ch_arr, size_ac, 0);
+			recv(sock, &ackn, sizeof(ackn), 0);
+
+			pthread_t th[peer_no];
+			chunk_info ci[peer_no];		
+
+			for(int i = 0; i < peer_no; i++) {
+				ci[i].port = all_ports[i];
+				strcpy(ci[i].ip, all_ips[i]);
+				ci[i].len = pos;
+				ci[i].start = i * CHUNK;
+				ci[i].peer_no = peer_no;
+
+				strcpy(ci[i].rd, ch1_tmp);
+				strcpy(ci[i].wr, f_cli);
+
+				if(pthread_create(&th[i], NULL, file_copy, (void *)&ci[i])) {
+					cout << "CHUNK THREAD ERROR !! Exiting.." << endl;
+					exit(1);
+				}
+			}
+			for(int i = 0; i < peer_no; i++) {
+				pthread_join(th[i], NULL);
+			}
+			cout << "FILE DOWNLOADED SUCCESSFULLY !!" << endl;
 		}
+		close(sock);
 	}
 }
