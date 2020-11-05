@@ -4,8 +4,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <pthread.h>
-#include "client_operations.h"
-#include "client_operations2.h"
+#include "peer_client.h"
+#include "peer_server.h"
 using namespace std;
 
 int main(int argc, char** argv) {
@@ -18,6 +18,7 @@ int main(int argc, char** argv) {
 	strcpy(c.ip, argv[1]);
 	c.port = stoi(argv[2]);
 	strcpy(c.file_info, argv[3]);
+	int port = c.port;
 
 	pthread_t t1, t2;
 

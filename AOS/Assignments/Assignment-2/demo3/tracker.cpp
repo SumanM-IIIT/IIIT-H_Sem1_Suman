@@ -2,6 +2,8 @@
 #include <bits/stdc++.h>
 #include <fstream>
 #include <pthread.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
 using namespace std;
 
 typedef long long ll;
@@ -25,7 +27,7 @@ typedef struct user_info {
 	int port;
 } UserInfo;
 
-int curr_user = -1, curr_group = -1, group_count = 0, user_count = 0;
+int logout = 0, curr_user = -1, curr_group = -1, group_count = 0, user_count = 0;
 map<int, int> login_status_map;
 map<string, vector<peers>> file_peer_map; 
 map<int, UserInfo> user_info_map;
@@ -88,7 +90,7 @@ void* file_opr(void *args) {
 			int u_no = i->first;
 			UserInfo &u2 = i->second;
 			strcpy(u2.ip, ip_tmp2);
-			u2.port_tmp2 = port;
+			u2.port = port_tmp2;
 
 			if(strcmp(username, u2.username) == 0 && strcmp(password, u2.password) == 0) {
 				if(login_status_map.find(u_no) == login_status_map.end()) {
@@ -115,11 +117,12 @@ void* file_opr(void *args) {
 		return NULL;
 	}
 	if(instr == 1) { //UPLOAD
-		continue;
+		cout << "Upload !!" << endl;
 	}
-	if(instr == 2) { //UPLOAD
-		continue;
-	}	
+	if(instr == 2) { //DOWNLOAD
+		cout << "Download !!" << endl;
+	}
+	return NULL;	
 }
 
 
@@ -149,7 +152,7 @@ void* listener(void* server_args) {
 	address.sin_port = htons(port);
 	address.sin_addr.s_addr = INADDR_ANY;
 
-	int add_len = sizeof(addr); //sockaddr OR addr
+	int add_len = sizeof(sockaddr); //sockaddr OR addr
 
 	if(bind(server, (struct sockaddr *)&address, sizeof(address)) < 0) {
 		cout << "PORT NOT AVAILABLE !!" << endl;
@@ -169,6 +172,7 @@ void* listener(void* server_args) {
 		if(logout)
 			break;
 	}
+	return NULL;
 }
 
 
@@ -195,11 +199,13 @@ int main(int argc, char** argv) {
 	Tracker tr;
 	if(tracker_no == 1) {
 		tr.port = stoi(ip_port[1]);
-		tr.ip = ip_port[0].c_str();
+		//tr.ip = ip_port[0].c_str();
+		strcpy(tr.ip, ip_port[0].c_str());
 	}
 	else if(tracker_no == 2) {
 		tr.port = stoi(ip_port[3]);
-		tr.ip = ip_port[2].c_str();
+		//tr.ip = ip_port[2].c_str();
+		strcpy(tr.ip, ip_port[2].c_str());
 	}
 	else {
 		cout << "INVALID TRACKER NUMBER !!" << endl;

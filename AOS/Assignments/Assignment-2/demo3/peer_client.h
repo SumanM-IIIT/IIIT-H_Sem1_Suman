@@ -10,9 +10,10 @@ using namespace std;
 int logout = 0;
 
 void* file_opr(void* f_arg) {
-	int instr, sock_fd = *((int *)arg);
+	int instr, sock_fd = *((int *)f_arg);
 
 	recv(sock_fd, &instr, sizeof(instr), 0);
+	return NULL;
 }
 
 void* client_listener(void* cli_arg) {
@@ -43,4 +44,5 @@ void* client_listener(void* cli_arg) {
 		if(logout)
 			break;
 	}   
+	return NULL;
 }

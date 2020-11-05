@@ -11,6 +11,9 @@ using namespace std;
 #define BUFFER 1024
 #define CHUNK 512*1024
 
+int all_ports[50];
+char all_ips[50][20];
+
 typedef struct Server_Conn {
 	int port, user_id;
 	char ip[20];
@@ -68,7 +71,7 @@ void* client_request(void* arg) {
 			if(command[i] == ' ') {
 				if(s != "")
 					cmd.push_back(s);
-				tmp = "";
+				s = "";
 				continue;
 			}
 			s += command[i];
@@ -174,10 +177,10 @@ void* client_request(void* arg) {
 				continue; 
 			}
 			fseek(f2, 0, SEEK_END);
-			pos = ftell();
+			pos = ftell(f2);
 			rewind(f2);
 
-			size = ceil(s * 1.0 / CHUNK);
+			size = ceil(pos * 1.0 / CHUNK);
 
 			char tmp_n[size + 1];
 			memset(tmp_n, '1', size);
@@ -202,7 +205,70 @@ void* client_request(void* arg) {
 			fclose(f2);
 		}
 		if(cmd[0] == "download") {
-			continue;
+			if(curr_user < 0) {
+				cout << "You MUST LOG IN to do this operation.." << endl;
+				continue;
+			}
+			flag2 = 2;
+			int group_id = stoi(cmd[1]);
+			char *ch1, *ch2;
+
+			strcpy(ch1, cmd[2].c_str());
+			strcpy(ch2, cmd[3].c_str());
+
+			send(sock, &flag2, sizeof(flag2), 0);
+			send(sock, ch1, strlen(ch1), 0);
+
+			recv(sock, &peer_no, sizeof(peer_no), 0);
+			recv(sock, &pos, sizeof(pos), 0);
+
+			cout << "Peers: " << peer_no << ", Size: " << pos << endl;
+
+			for(int i = 0; i < peer_no; i++) {
+				int dem2, ackn = 0, port_tmp3;
+				char ip_tmp3[20];
+				memset(ip_tmp3, '\0', 20);
+				recv(sock, &port_tmp3, sizeof(port_tmp3), 0);
+				send(sock, &ackn, sizeof(ackn), 0);
+				dem2 = recv(sock, ip_tmp3, 20, 0);
+				send(sock, &ackn, sizeof(ackn), 0);
+				
+				all_ports[i] = port_tmp3;
+				strcpy(all_ips[i], ip_tmp3);
+				cout << "Dem3: " << dem3 << ", IP: " << all_ips[i] << ", Port: " << all_ports[i] << endl;
+			}
+
+			if(!pos || !port) { //port == 0
+				cout << "FILE ABSENT !!" << endl;
+				continue;
+			} 
+
+			char *ch1_tmp, f_cli[100], actual_buffer[BUFFER];
+			strcpy(ch1_tmp, ch1);
+
+			sprintf(f_cli, "%s%s", ch2, ch1_tmp);
+
+			FILE *file1 = fopen(f_cli, "wb");
+			memset(actual_buffer, '\0', BUFFER);
+
+			int f_size_act, file_size = pos / BUFFER;
+			f_size_act = file_size;
+			cout << "File Size: " << file_size << endl;
+
+			while(file_size > 0) {
+				fwrite(actual_buffer, 1, BUFFER, file1);
+				file_size--;
+			}
+			file_size = pos % BUFFER;
+
+			char c_tmp = '\0';
+			while(file_size > 0) {
+				fwrite(&c_tmp, 1, 1, file1);
+				file_size--;
+			}
+			fclose(file1);
+
+			
 		}
 	}
 }
