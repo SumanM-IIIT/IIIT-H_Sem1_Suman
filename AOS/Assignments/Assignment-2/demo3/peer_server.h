@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <stdio.h>
 #include <iostream>
 #include <bits/stdc++.h>
@@ -11,7 +12,7 @@ using namespace std;
 #define BUFFER 1024
 #define CHUNK 512*1024
 
-int all_ports[50];
+int all_ports[50] = {-1};
 char all_ips[50][20];
 
 typedef struct Server_Conn {
@@ -30,6 +31,20 @@ typedef struct ChunkInfo {
 } chunk_info; 
 
 int curr_user = -1;
+
+bool all_port_empty(int* all_ports) {
+	int flag = 0;
+	for(int i = 0; i < 50; i++) {
+		if(all_ports[i] != -1) {
+			flag = 1;
+			break;
+		}
+	}
+	if(flag == 0) 
+		return true;
+	else
+		return false;
+}
 
 void* file_copy(void* arg) {
 	chunk_info *ci = (chunk_info*)arg;
@@ -116,7 +131,7 @@ void* client_request(void* arg) {
 	cout << "Connection Established..." << endl;
 
 	while(1) {
-		cout << "Client: " << endl;
+		//cout << "Client: " << endl;
 		int peer_no, len;
 		string command, s = "";
 		vector<string> cmd; 
@@ -167,12 +182,13 @@ void* client_request(void* arg) {
 				continue;
 			}
 			flag2 = 10;
-			int tmp_len;
+			int tmp_len = 0;
 			send(sock, &flag2, sizeof(flag2), 0);
 			recv(sock, &tmp_len, sizeof(tmp_len), 0);
 
-			char file_name[100];
+			cout << "tmp_len: " << tmp_len << endl;
 			for(int i = 0; i < tmp_len; i++) {
+				char file_name[105];
 				memset(file_name, '\0', sizeof(file_name));
 				recv(sock, file_name, sizeof(file_name), 0);
 				cout << i + 1 << ". " << file_name << endl;
@@ -256,7 +272,7 @@ void* client_request(void* arg) {
 			send(sock, &s, sizeof(s), 0);
 			recv(sock, &ackn, sizeof(ackn), 0);
 
-			cout << tmp_n << endl;
+			//cout << tmp_n << endl;
 			send(sock, tmp_n, size, 0);
 			recv(sock, &ackn, sizeof(ackn), 0);
 
@@ -269,7 +285,7 @@ void* client_request(void* arg) {
 				continue;
 			}
 			flag2 = 2;
-			int group_id = stoi(cmd[1]);
+			int pos, group_id = stoi(cmd[1]);
 			char *ch1, *ch2;
 
 			strcpy(ch1, cmd[2].c_str());
@@ -277,7 +293,6 @@ void* client_request(void* arg) {
 
 			send(sock, &flag2, sizeof(flag2), 0);
 			send(sock, ch1, strlen(ch1), 0);
-
 			recv(sock, &peer_no, sizeof(peer_no), 0);
 			recv(sock, &pos, sizeof(pos), 0);
 
@@ -294,10 +309,10 @@ void* client_request(void* arg) {
 				
 				all_ports[i] = port_tmp3;
 				strcpy(all_ips[i], ip_tmp3);
-				cout << "Dem3: " << dem3 << ", IP: " << all_ips[i] << ", Port: " << all_ports[i] << endl;
+				cout << "Dem2: " << dem2 << ", IP: " << all_ips[i] << ", Port: " << all_ports[i] << endl;
 			}
 
-			if(!pos || !port) { //port == 0
+			if(pos == 0 || all_port_empty(all_ports)) { 
 				cout << "FILE ABSENT !!" << endl;
 				continue;
 			} 
@@ -344,7 +359,7 @@ void* client_request(void* arg) {
 			recv(sock, &ackn, sizeof(ackn), 0);
 			send(sock, ch1_tmp, strlen(ch1_tmp), 0);
 			recv(sock, &ackn, sizeof(ackn), 0);
-			send(sock, &pos, size(pos), 0);
+			send(sock, &pos, sizeof(pos), 0);
 			recv(sock, &ackn, sizeof(ackn), 0);
 			
 			send(sock, ch_arr, size_ac, 0);

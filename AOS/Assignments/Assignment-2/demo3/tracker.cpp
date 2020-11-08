@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <iostream>
 #include <bits/stdc++.h>
 #include <fstream>
@@ -50,7 +51,9 @@ void* file_opr(void *args) {
 		return NULL;
 	}
 	if(instr == 10) { //SHOW FILES
+		cout << 101010101010 << endl;
 		int size_m = file_peer_map.size();
+		cout << "size_m: " << size_m << endl;
 		send(sock_fd, &size_m, sizeof(size_m), 0);
 		for(auto i = file_peer_map.begin(); i != file_peer_map.end(); i++) {
 			send(sock_fd, i->first.c_str(), sizeof(i->first.c_str()), 0);
@@ -190,8 +193,86 @@ void* file_opr(void *args) {
 		}
 	}
 	if(instr == 2) { //DOWNLOAD
-		cout << "Download !!" << endl;
+		char actual_buffer[100];
+		memset(actual_buffer, '\0', 100);
+		recv(sock_fd, actual_buffer, sizeof(actual_buffer), 0);
+
+		string s_tmp = "";
+		for(int i = 0; i < strlen(actual_buffer); i++) {
+			s_tmp += actual_buffer[i];
+		}
+		file_info &fi = file_info_map[s_tmp];
+		vector<peers> &vp = file_peer_map[s_tmp]; 
+
+		int size, ackn = 0, fi_size = fi.len, vp_size = vp.size();
+		send(sock_fd, &vp_size, sizeof(vp_size), 0);
+		send(sock_fd, &fi_size, sizeof(fi_size), 0);
+
+		int p, group_id;
+		char ip[20], filename[100];
+		for(int i = 0; i < vp_size; i++) {
+			p = vp[i].port;
+			//char ip[20];
+			strcpy(ip, vp[i].ip);
+			send(sock_fd, &p, sizeof(p), 0);
+			recv(sock_fd, &ackn, sizeof(ackn), 0);
+			send(sock_fd, ip, strlen(ip), 0);
+			recv(sock_fd, &ackn, sizeof(ackn), 0);
+		}
+		//cout << "File INFO Sent !!" << endl;
+
+		memset(ip, '\0', sizeof(ip));
+		memset(filename, '\0', sizeof(filename));
+
+		ackn = 0;
+		recv(sock_fd, &p, sizeof(p), 0);
+		recv(sock_fd, &group_id, sizeof(group_id), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+		recv(sock_fd, ip, sizeof(ip), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+		recv(sock_fd, filename, sizeof(filename), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+		recv(sock_fd, &size, sizeof(size), 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+
+		int size_chk = ceil(size * 1.0 / CHUNK);
+		char buff3[size_chk + 1];
+		memset(buff3, '\0', sizeof(buff3));
+
+		recv(sock_fd, buff3, size_chk, 0);
+		send(sock_fd, &ackn, sizeof(ackn), 0);
+
+		vector<char> chunk_v;
+		for(int i = 0; i < size_chk; i++) 
+			chunk_v.push_back(buff3[i]);
+
+		s_tmp = "";
+		for(int i = 0; i < strlen(filename); i++)
+			s_tmp += filename[i];
+
+		file_info fi2;
+		fi2.len = size;
+		fi2.sha1 = "temp";
+		file_info_map.insert(make_pair(s_tmp, fi2));
+
+		peers pi;
+		strcpy(pi.ip, ip);
+		pi.port = p;
+		pi.chunk_v = chunk_v;
+
+		map<string, vector<peers>>::iterator itr = file_peer_map.find(s_tmp);
+		if(itr != file_peer_map.end())
+			itr->second.push_back(pi);
+		else {
+			vector<peers> vp2;
+			vp2.push_back(pi);
+			file_peer_map.insert(make_pair(s_tmp, vp2));
+		}
+		cout << "FILE INFO UPDATED in TRACKER !!" << endl;
+		pthread_exit(NULL);
 	}
+	close(sock_fd);
+	//cout << "CONNECTION REQUEST COMPLETED !!" << endl;
 	return NULL;	
 }
 

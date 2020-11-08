@@ -1,3 +1,4 @@
+#include <unistd.h>
 #include <iostream>
 #include <bits/stdc++.h>
 #include <sys/socket.h>
@@ -20,7 +21,7 @@ void* file_opr(void* f_arg) {
 		recv(sock_fd, &logout, sizeof(logout), 0);
 	}
 	if(instr == 1) {
-		char buff_tmp[100], file_server[100], actual_buffer[BUFFER];
+		char buff_tmp[100], file_server[105], actual_buffer[BUFFER];
 		memset(buff_tmp, '\0', 100);
 		recv(sock_fd, buff_tmp, sizeof(buff_tmp), 0);
 		sprintf(file_server, "copy_%s", buff_tmp);

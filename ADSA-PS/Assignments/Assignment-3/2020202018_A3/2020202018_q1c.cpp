@@ -26,9 +26,9 @@ vector<ll> build_suffix_array(string s, ll len) {
     ll i, j; 
     for(i = 0; i < len; i++) { 
         all_suff[i].index = i; 
-        all_suff[i].rank[0] = s[i] - 'a'; 
+        all_suff[i].rank[0] = s[i]/* - 'a'*/; 
         if(i + 1 < len) 
-            all_suff[i].rank[1] = s[i + 1] - 'a';   
+            all_suff[i].rank[1] = s[i + 1]/* - 'a'*/;   
         else
             all_suff[i].rank[1] = -1;
     } 
@@ -73,6 +73,7 @@ vector<ll> calculate_lcp(string str, vector<ll> suf_arr) {
     ll i, j = 0, k, n = suf_arr.size(); 
     vector<ll> lcp_arr(n), inv_suf(n); 
     lcp_arr[0] = 0;
+    //lcp_arr[n - 1] = 0;
 
     for(i = 0; i < n; i++) 
         inv_suf[suf_arr[i]] = i; 
@@ -113,7 +114,7 @@ int main() {
     ll len = s.length(); 
     tmp1 = s;
     reverse(tmp1.begin(), tmp1.end());
-    s = s + "#" + tmp1;
+    s = s + '#' + tmp1;
     ll i, new_len = s.length();
 
     vector<ll> suf_arr = build_suffix_array(s, new_len);

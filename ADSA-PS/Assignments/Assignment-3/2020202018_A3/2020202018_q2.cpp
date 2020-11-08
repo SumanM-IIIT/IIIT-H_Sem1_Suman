@@ -80,12 +80,11 @@ ll max_xor(Node* root, ll x, ll pos_bit) {
 }
 
 int main() {
-   ll i, n, q, k, query;
+   ll i, n, q, query;
    cin >> n >> q;
    vector<ll> A(n);
    for(i = 0; i < n; i++) {
-      cin >> k;
-      A[i] = k;
+      cin >> A[i];
    }
    Node *root = build_trie(A, n);
    for(i = 0; i < q; i++) {

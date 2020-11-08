@@ -19,11 +19,11 @@ from math import ceil
 import sys
 import time
 
-n_values = 100_000_000
-n_digits = 6
+n_values = 200_000_000
+n_digits = 4
 default_seed = 1337
 BUFFER_SIZE = 100_000
-out_fname = "unsorted_file_500MB.txt"
+out_fname = "unsorted_file_1GB.txt"
 
 if __name__ == '__main__':
     try:

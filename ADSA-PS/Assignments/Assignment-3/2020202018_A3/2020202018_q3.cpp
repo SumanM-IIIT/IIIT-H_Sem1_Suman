@@ -198,7 +198,7 @@ int main(int argc, char** argv) {
 			arr = (ll *)malloc(sizeof(ll) * SIZE);
 			k = 0;
 		}
-		if(a == ',') {
+		if(a == ',' || a == ' ') {
 			stringstream ss(tmp);
 			ss >> num;
 			arr[k++] = num; 

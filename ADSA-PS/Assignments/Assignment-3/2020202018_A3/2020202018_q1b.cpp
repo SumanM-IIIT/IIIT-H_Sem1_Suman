@@ -26,9 +26,9 @@ vector<ll> build_suffix_array(string s, ll len) {
 	ll i, j; 
     for(i = 0; i < len; i++) { 
         all_suff[i].index = i; 
-        all_suff[i].rank[0] = s[i] - 'a'; 
+        all_suff[i].rank[0] = s[i] - '0'; 
         if(i + 1 < len) 
-        	all_suff[i].rank[1] = s[i + 1] - 'a';	
+        	all_suff[i].rank[1] = s[i + 1] - '0';	
         else
         	all_suff[i].rank[1] = -1;
     } 
