@@ -10,6 +10,7 @@
 #include <arpa/inet.h>
 #include <bits/stdc++.h>
 #include <iostream>
+#include <fstream>
 using namespace std;
 
 int clientCount = 0;
@@ -26,24 +27,32 @@ struct client {
 	//bool is_login = true;
 	//string own_group = "";
 };
+typedef struct file_info {
+	string filename;
+	string sha1;
+} FileInfo;
 typedef struct group {
 	string owner, name;
 	vector<string> members;
+	vector<FileInfo> group_files;
 } Group;
 
 typedef struct user {
 	string username = "", password = "";
 	bool is_login = true;
 	vector<string> group_part, own_group;
+	vector<FileInfo> usr_file_arr;
 } User;
 
 struct client Client[1024];
 vector<Group*> groups;
+vector<FileInfo*> files_arr;
 pthread_t my_thread[1024];
 vector<User*> usr;
 map<string, string> group_map;
+map<string, FileInfo> user_file_map;
 
-void * doNetworking(void * ClientDetail){
+void * doNetworking(void * ClientDetail) {
 
 	struct client* clientDetail = (struct client*) ClientDetail;
 	int index = clientDetail->index;
@@ -171,11 +180,20 @@ void * doNetworking(void * ClientDetail){
 			for(int i = 0; i < usr.size(); i++) {
 				if(Client[index].username == usr[i]->username) {
 					map<string, string>::iterator itr;
-					msg += "All Groups in Server: \nGROUP\tOWNER\n";
+					msg += "All Groups in Server: \nGROUP\tOWNER\tMEMBERS\n";
 					//cout << "All Groups in Server: " << endl;
 					//cout << "GROUP\tOWNER" << endl;
 					for(itr = group_map.begin(); itr != group_map.end(); itr++) {
-						msg += itr->first + "\t" + itr->second + "\n";
+						msg += itr->first + "\t" + itr->second + "\t";
+						for(int j = 0; j < usr.size(); j++) {
+							int len = usr[j]->group_part.size();
+							for(int k = 0; k < len; k++) {
+								if(usr[j]->group_part[k] == itr->first) {
+									msg += usr[j]->username + ",";
+								}
+							}
+						}
+						msg += "\n";
 						//cout << itr->first << "\t" << itr->second << endl;
 					}
 					flag = 1;
@@ -184,6 +202,84 @@ void * doNetworking(void * ClientDetail){
 			}
 			if(flag == 0)
 				msg += "LOGIN first to see all the groups...\n";
+			send(Client[index].sockID, msg.c_str(), 2048, 0);
+		}
+		if(cmd[0] == "upload_file") {
+			string msg = "";
+			int flag = 0;
+			for(int i = 0; i < usr.size(); i++) {
+				if(Client[index].username == usr[i]->username) {
+					ifstream f_in;
+					f_in.open(cmd[1]);
+					if (!f_in) { 
+						msg += "CAN'T OPEN THE FILE: " + cmd[1] + " !!\n"; 
+					}
+					else {
+						FileInfo fi;
+						fi.filename = cmd[1];
+						fi.sha1 = "hello";
+						usr[i]->usr_file_arr.push_back(fi);
+						files_arr.push_back(&fi);
+						msg += "File Uploaded successfully..\n";
+					}
+					flag = 1;
+					f_in.close();
+					break;
+				}
+			}
+			if(flag == 0)
+				msg += "LOGIN first to upload files...\n";
+			send(Client[index].sockID, msg.c_str(), 2048, 0);
+		}
+		if(cmd[0] == "download_file") {
+			string msg = "";
+			int flag = 0;
+			for(int i = 0; i < usr.size(); i++) {
+				if(Client[index].username == usr[i]->username) {
+					ofstream f_out;
+					ifstream f_in;
+					f_in.open(cmd[1]);
+					f_out.open("downloaded_" + cmd[1]);
+					if (!f_in) { 
+						msg += "CAN'T DOWNLOAD THE FILE: " + cmd[1] + " !!\n"; 
+					}
+					else {
+						char f_data;
+						while(f_in >> f_data) {
+							//cout << "Hello" << f_data << " ";
+							f_out << f_data;
+							//msg += f_data;
+						}	
+						msg += "File Downloaded successfully...\n";
+					}
+					flag = 1;
+					f_in.close();
+					f_out.close();
+					break;
+				}
+			}
+			if(flag == 0)
+				msg += "LOGIN first to upload files...\n";
+			send(Client[index].sockID, msg.c_str(), 2048, 0);
+		}
+		if(cmd[0] == "show_files") {
+			string msg = "";
+			int flag = 0;
+			for(int i = 0; i < usr.size(); i++) {
+				if(Client[index].username == usr[i]->username) {
+					for(int i = 0; i < files_arr.size(); i++) {
+						msg += to_string(i + 1) + ". " + files_arr[i]->filename + "\n";
+					}
+					flag = 1;
+					break;
+				}
+			}
+			if(flag == 0)
+				msg += "LOGIN first to view files...\n";
+			send(Client[index].sockID, msg.c_str(), 2048, 0);
+		}
+		if(cmd[0] == "exit" || cmd[0] == "quit") {
+			string msg = "Tracker exiting...";
 			send(Client[index].sockID, msg.c_str(), 2048, 0);
 		}
 		if(cmd[0] == "yes") {
@@ -216,7 +312,7 @@ void * doNetworking(void * ClientDetail){
 								int rcv = recv(owner_sockid, outp, 1024, 0);
 								outp[rcv] = '\0';
 								string t(outp);
-								cout << "Faltu outp: " << t << endl;
+								//cout << "Faltu outp: " << t << endl;
 								if(strcmp(outp, "yes") == 0) {
 									for(int k = 0; k < groups.size(); k++) {
 										if(groups[k]->name == cmd[1] && groups[k]->owner == owner) {
@@ -276,72 +372,94 @@ void * doNetworking(void * ClientDetail){
 		if(cmd[0] == "accept_group_join") {
 			
 		}*/
-		if(strcmp(data,"LIST") == 0) {
-
-			int l = 0;
-
-			for(int i = 0 ; i < clientCount ; i ++){
-
-				if(i != index)
-					l += snprintf(output + l,1024,"Client %d is at socket %d.\n",i + 1,Client[i].sockID);
-
-			}
-
-			send(clientSocket,output,1024,0);
-			continue;
-
-		}
-		if(strcmp(data,"SEND") == 0){
-
-			read = recv(clientSocket,data,1024,0);
-			data[read] = '\0';
-
-			int id = atoi(data) - 1;
-
-			read = recv(clientSocket,data,1024,0);
-			data[read] = '\0';
-
-			send(Client[id].sockID,data,1024,0);			
-
-		}
 
 	}
-
 	return NULL;
-
 }
 
 int main(int argc, char** argv) {
-
+	fstream f_in;
+	f_in.open(argv[1]);
+	string tr;
+	vector<string> tr_arr;
+	while(f_in >> tr) {	
+		tr_arr.push_back(tr);
+	}
+	string ip;
+	int port, tracker_no = stoi(argv[2]);
 	int serverSocket = socket(PF_INET, SOCK_STREAM, 0);
-
 	struct sockaddr_in serverAddr;
 
-	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_port = htons(atoi(argv[2]));
-	serverAddr.sin_addr.s_addr = inet_addr(argv[1]);
-
-
-	if(bind(serverSocket,(struct sockaddr *) &serverAddr , sizeof(serverAddr)) == -1) 
+	if(tracker_no == 1) {
+		port = stoi(tr_arr[1]);
+		ip =tr_arr[0];
+		serverAddr.sin_family = AF_INET;
+		serverAddr.sin_port = htons(port);
+		serverAddr.sin_addr.s_addr = inet_addr(ip.c_str());
+		int flag = 0;
+		if(bind(serverSocket,(struct sockaddr *) &serverAddr , sizeof(serverAddr)) == -1) 
+			flag = 1;
+		if(listen(serverSocket,1024) == -1) 
+			flag = 1;
+		if(flag == 1) {
+			cout << "Tracker-1 Connection failed !! Tracker-2 connecting..." << endl;
+			port = stoi(tr_arr[3]);
+			ip = tr_arr[2].c_str();
+			serverAddr.sin_port = htons(port);
+			serverAddr.sin_addr.s_addr = inet_addr(ip.c_str());
+			if(bind(serverSocket,(struct sockaddr *) &serverAddr , sizeof(serverAddr)) == -1) 
+				flag = 2;
+			if(listen(serverSocket,1024) == -1) 
+				flag = 2;
+			if(flag == 2) {
+				cout << "Tracker-2 Connection also failed !! Exiting.." << endl;
+				return 0;
+			}
+		}
+		cout << "Tracker is listenting on port " << port << "..." << endl;
+	}
+	else if(tracker_no == 2) {
+		port = stoi(tr_arr[3]);
+		ip =tr_arr[2]; 
+		serverAddr.sin_family = AF_INET;
+		serverAddr.sin_port = htons(port);
+		serverAddr.sin_addr.s_addr = inet_addr(ip.c_str());
+		int flag = 0;
+		if(bind(serverSocket,(struct sockaddr *) &serverAddr , sizeof(serverAddr)) == -1) 
+			flag = 1;
+		if(listen(serverSocket,1024) == -1) 
+			flag = 1;
+		if(flag == 1) {
+			cout << "Tracker-2 Connection failed !! Tracker-1 connecting..." << endl;
+			port = stoi(tr_arr[1]);
+			ip = tr_arr[0].c_str();
+			serverAddr.sin_port = htons(port);
+			serverAddr.sin_addr.s_addr = inet_addr(ip.c_str());
+			if(bind(serverSocket,(struct sockaddr *) &serverAddr , sizeof(serverAddr)) == -1) 
+				flag = 2;
+			if(listen(serverSocket,1024) == -1) 
+				flag = 2;
+			if(flag == 2) {
+				cout << "Tracker-1 Connection also failed !! Exiting.." << endl;
+				return 0;
+			}
+		}
+		cout << "Tracker is listenting on port " << port << "..." << endl;
+	}
+	else {
+		cout << "Please enter correct tracker number !! Exiting..." << endl;
 		return 0;
+	}
 
-	if(listen(serverSocket,1024) == -1) 
-		return 0;
-
-	printf("Server started listenting on port %d...........\n", atoi(argv[2]));
-
-	while(1){
-
+	while(1) {
 		Client[clientCount].sockID = accept(serverSocket, (struct sockaddr*) &Client[clientCount].clientAddr, &Client[clientCount].len);
 		Client[clientCount].index = clientCount;
 
 		pthread_create(&my_thread[clientCount], NULL, doNetworking, (void *) &Client[clientCount]);
-
 		clientCount++;
- 
 	}
 
 	for(int i = 0 ; i < clientCount ; i++)
 		pthread_join(my_thread[i],NULL);
-
+	return 0;
 }

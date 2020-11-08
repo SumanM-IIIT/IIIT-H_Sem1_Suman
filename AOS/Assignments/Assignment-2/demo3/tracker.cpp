@@ -51,7 +51,7 @@ void* file_opr(void *args) {
 		return NULL;
 	}
 	if(instr == 10) { //SHOW FILES
-		cout << 101010101010 << endl;
+		//cout << 101010101010 << endl;
 		int size_m = file_peer_map.size();
 		cout << "size_m: " << size_m << endl;
 		send(sock_fd, &size_m, sizeof(size_m), 0);
@@ -133,7 +133,7 @@ void* file_opr(void *args) {
 		memset(filename, '\0', sizeof(filename));
 
 		recv(sock_fd, &port, sizeof(port), 0);
-		recv(sock_fd, &group_id, sizeof(group_id), 0);
+		//recv(sock_fd, &group_id, sizeof(group_id), 0);
 		send(sock_fd, &ackn, sizeof(ackn), 0);
 		recv(sock_fd, ip, sizeof(ip), 0);
 		send(sock_fd, &ackn, sizeof(ackn), 0);
@@ -158,12 +158,14 @@ void* file_opr(void *args) {
 		for(int i = 0; i < strlen(filename); i++) {
 			s_tmp += filename[i];
 		}
+		cout << ip << " " << port << " " << filename << " " << len << endl;
 		file_info fi;
 		fi.len = len;
 		fi.sha1 = "temp";
 		file_info_map.insert(make_pair(s_tmp, fi));
 
 		peers ps;
+		strcpy(ps.ip, ip);
 		ps.port = port;
 		ps.chunk_v = char_v;
 

@@ -186,7 +186,7 @@ void* client_request(void* arg) {
 			send(sock, &flag2, sizeof(flag2), 0);
 			recv(sock, &tmp_len, sizeof(tmp_len), 0);
 
-			cout << "tmp_len: " << tmp_len << endl;
+			//cout << "tmp_len: " << tmp_len << endl;
 			for(int i = 0; i < tmp_len; i++) {
 				char file_name[105];
 				memset(file_name, '\0', sizeof(file_name));
@@ -244,7 +244,7 @@ void* client_request(void* arg) {
 			}
 			flag2 = 1;
 			string dem = cmd[1];
-			int size, pos, ackn, group_id = stoi(cmd[2]);
+			int size, pos, ackn;//group_id = stoi(cmd[2]);
 
 			FILE *f2 = fopen(dem.c_str(), "rb");
 			if(!f2) {
@@ -263,7 +263,7 @@ void* client_request(void* arg) {
 
 			send(sock, &flag2, sizeof(flag2), 0);
 			send(sock, &(c->port), sizeof(c->port), 0);
-			send(sock, &group_id, sizeof(group_id), 0);
+			//send(sock, &group_id, sizeof(group_id), 0);
 			recv(sock, &ackn, sizeof(ackn), 0);
 			send(sock, c->ip, strlen(c->ip), 0);
 			recv(sock, &ackn, sizeof(ackn), 0);

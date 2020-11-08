@@ -12,12 +12,9 @@
 #include <iostream>
 using namespace std;
 
-void * doRecieving(void * sockID){
-
+void * receive(void * sockID) {
 	int clientSocket = *((int *) sockID);
-
-	while(1){
-
+	while(1) {
 		char data[1024];
 		int read = recv(clientSocket,data,1024,0);
 		data[read] = '\0';
@@ -59,27 +56,43 @@ void * doRecieving(void * sockID){
 }
 
 int main(int argc, char** argv) {
-
+	char *ip = argv[1];
+	int port = stoi(argv[2]);
+	fstream f_in;
+	f_in.open(argv[3]);
+	string tr;
+	vector<string> tr_arr;
+	while(f_in >> tr) {	
+		tr_arr.push_back(tr);
+	}
 	int clientSocket = socket(PF_INET, SOCK_STREAM, 0);
 
 	struct sockaddr_in serverAddr;
 
 	serverAddr.sin_family = AF_INET;
-	serverAddr.sin_port = htons(atoi(argv[2]));
-	serverAddr.sin_addr.s_addr = inet_addr(argv[1]);
+	serverAddr.sin_port = htons(stoi(tr_arr[1]));
+	serverAddr.sin_addr.s_addr = inet_addr(tr_arr[0].c_str());
 
-	if(connect(clientSocket, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) == -1) 
-		return 0;
+	if(connect(clientSocket, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) == -1) {
+		cout << "Connection to Tracker-1 Failed !! Connecting to Tracker-2..." << endl;
+		serverAddr.sin_port = htons(stoi(tr_arr[3]));
+		serverAddr.sin_addr.s_addr = inet_addr(tr_arr[2].c_str());
+		if(connect(clientSocket, (struct sockaddr*) &serverAddr, sizeof(serverAddr)) == -1) {
+			cout << "Connection to Tracker-2 also Failed !! Exiting..." << endl;
+			return 0;
+		}
+	}
 
-	printf("Connection established ............\n");
+	cout << "Connection established...\n";
 
 	pthread_t thread;
-	pthread_create(&thread, NULL, doRecieving, (void *) &clientSocket );
+	pthread_create(&thread, NULL, receive, (void *) &clientSocket);
 
-	while(1){
+	while(1) {
 
 		//char input[1024];
 		//scanf("%s",input);
+		cout << "Enter Command: ";
 		string input, tmp = "";
 		getline(cin, input);
 		char data[2048];
@@ -123,88 +136,98 @@ int main(int argc, char** argv) {
 			string d(data);
 			cout << d;
 		}
-		if(cmd[0] == "login") {
+		else if(cmd[0] == "login") {
 			send(clientSocket,input.c_str(),1024,0);
 			int read = recv(clientSocket,data,2048,0);
 			data[read] = '\0';
 			string d(data);
 			cout << d;
 		}
-		if(cmd[0] == "logout") {
+		else if(cmd[0] == "logout") {
 			send(clientSocket,input.c_str(),1024,0);
 			int read = recv(clientSocket,data,2048,0);
 			data[read] = '\0';
 			string d(data);
 			cout << d;
 		}
-		if(cmd[0] == "create_group") {
+		else if(cmd[0] == "create_group") {
 			send(clientSocket,input.c_str(),1024,0);
 			int read = recv(clientSocket,data,2048,0);
 			data[read] = '\0';
 			string d(data);
 			cout << d;
 		}
-		if(cmd[0] == "fetch_groups") {
+		else if(cmd[0] == "fetch_groups") {
 			send(clientSocket,input.c_str(),1024,0);
 			int read = recv(clientSocket,data,2048,0);
 			data[read] = '\0';
 			string d(data);
 			cout << d;
 		}
-		if(cmd[0] == "request_group_join") {
+		else if(cmd[0] == "request_group_join") {
 			send(clientSocket,input.c_str(),1024,0);
 			int read = recv(clientSocket,data,2048,0);
 			data[read] = '\0';
 			string d(data);
 			cout << d;
 		}
-		if(cmd[0] == "leave_group") {
+		else if(cmd[0] == "leave_group") {
 			send(clientSocket,input.c_str(),1024,0);
 			int read = recv(clientSocket,data,2048,0);
 			data[read] = '\0';
 			string d(data);
 			cout << d;
 		}
-		if(cmd[0] == "yes") {
+		else if(cmd[0] == "upload_file") {
 			send(clientSocket,input.c_str(),1024,0);
 			int read = recv(clientSocket,data,2048,0);
 			data[read] = '\0';
 			string d(data);
 			cout << d;
 		}
-		if(cmd[0] == "no") {
+		else if(cmd[0] == "show_files") {
 			send(clientSocket,input.c_str(),1024,0);
 			int read = recv(clientSocket,data,2048,0);
 			data[read] = '\0';
 			string d(data);
 			cout << d;
 		}
-		
-		if(cmd[0] == "LIST"){
-
+		else if(cmd[0] == "download_file") {
 			send(clientSocket,input.c_str(),1024,0);
-
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d;
 		}
-		if(cmd[0] == "exit") {
+		else if(cmd[0] == "yes") {
+			send(clientSocket,input.c_str(),1024,0);
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d;
+		}
+		else if(cmd[0] == "no") {
+			send(clientSocket,input.c_str(),1024,0);
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d;
+		}
+		else if(cmd[0] == "exit" || cmd[0] == "quit") {
+			//lose(clientSocket);
+			//cout << "Both Tracker & Peer are exiting..." << endl;
+			send(clientSocket,input.c_str(),1024,0);
+			int read = recv(clientSocket,data,2048,0);
+			data[read] = '\0';
+			string d(data);
+			cout << d << " & Peer exiting..." << endl;
 			break;
 		}
-		else if(cmd[0] == "SEND"){
-
-			send(clientSocket,input.c_str(),1024,0);
-			
-			//scanf("%s",input);
-			getline(cin, input);
-			send(clientSocket,input.c_str(),1024,0);
-			
-			//scanf("%[^\n]s",input);
-			getline(cin, input);
-			send(clientSocket,input.c_str(),1024,0);
-
-		}
-		else
+		else {
+			cout << "INVALID COMMAND !! Please enter again..." << endl;
 			continue;
-
+		}
 	}
-
-
+	//pthread_join(thread, NULL);
+	return 0;
 }

@@ -4,11 +4,11 @@ using namespace std;
 
 typedef long long ll;
 
-typedef struct suffix { 
+/*typedef struct suffix { 
     ll index, rank[2];
-}Suffix;
+}Suffix;*/
 
-int suffix_comparator(Suffix first, Suffix second) {
+/*int suffix_comparator(Suffix first, Suffix second) {
     if(first.rank[0] == second.rank[0]) {
         if(first.rank[1] < second.rank[1])
             return 1;
@@ -19,16 +19,16 @@ int suffix_comparator(Suffix first, Suffix second) {
         return 1;
     else
         return 0;
-} 
+}*/ 
 
-vector<ll> build_suffix_array(string s, ll len) {
+/*vector<ll> build_suffix_array(string s, ll len) {
     Suffix all_suff[len];
     ll i, j; 
     for(i = 0; i < len; i++) { 
         all_suff[i].index = i; 
-        all_suff[i].rank[0] = s[i]/* - 'a'*/; 
+        all_suff[i].rank[0] = s[i] - '0'; 
         if(i + 1 < len) 
-            all_suff[i].rank[1] = s[i + 1]/* - 'a'*/;   
+            all_suff[i].rank[1] = s[i + 1] - '0';   
         else
             all_suff[i].rank[1] = -1;
     } 
@@ -68,8 +68,8 @@ vector<ll> build_suffix_array(string s, ll len) {
     for (i = 0; i < len; i++) 
         suff_arr[i] = all_suff[i].index; 
     return suff_arr;
-}
-vector<ll> calculate_lcp(string str, vector<ll> suf_arr) { 
+}*/
+/*vector<ll> calculate_lcp(string str, vector<ll> suf_arr) { 
     ll i, j = 0, k, n = suf_arr.size(); 
     vector<ll> lcp_arr(n), inv_suf(n); 
     lcp_arr[0] = 0;
@@ -92,8 +92,8 @@ vector<ll> calculate_lcp(string str, vector<ll> suf_arr) {
             j--; 
     }
     return lcp_arr; 
-} 
-string palindrome(vector<ll> suf_arr, vector<ll> lcp_arr, ll len, ll new_len, string str) {
+}*/ 
+/*string palindrome(vector<ll> suf_arr, vector<ll> lcp_arr, ll len, ll new_len, string str) {
     ll i, pal_len = 0, pos = 0;
     for(i = 1; i < new_len; i++) {
         if(lcp_arr[i] > pal_len) {
@@ -106,12 +106,44 @@ string palindrome(vector<ll> suf_arr, vector<ll> lcp_arr, ll len, ll new_len, st
     //cout << "Pos: " << pos << endl;
     //cout << "Pal_Len: " << pal_len << endl;
     return str.substr(pos, pal_len);
+}*/
+string longest_palindrome_manacher(string stri) { 
+    ll n = 2 * stri.length() + 1;
+    vector<ll> len_arr(n);
+    len_arr[0] = 0; 
+    len_arr[1] = 1; 
+    ll i, center = 1, center_right = 2, curr_left, max_len = 0, center_pos = 0, diff = -1;    
+    for(i = 2; i < n; i++) { 
+        curr_left = 2 * center - i; 
+        len_arr[i] = 0; 
+        diff = center_right - i; 
+        if(diff > 0) 
+            len_arr[i] = min(len_arr[curr_left], diff); 
+
+        while(((i + len_arr[i]) < n && (i - len_arr[i]) > 0) && (((i + len_arr[i] + 1) % 2 == 0) || (stri[(i + len_arr[i] + 1) / 2] == stri[(i - len_arr[i] - 1) / 2]))) 
+            len_arr[i]++; 
+        if(len_arr[i] > max_len) { 
+            max_len = len_arr[i]; 
+            center_pos = i; 
+        } 
+        if(i + len_arr[i] > center_right) { 
+            center = i; 
+            center_right = i + len_arr[i]; 
+        } 
+    } 
+    ll s = (center_pos - max_len) / 2; 
+    ll e = s + max_len - 1; 
+    string tmp = "";
+    for(i = s; i <= e; i++) 
+        tmp += stri[i];
+    return tmp;
 }
 
 int main() {
     string s, tmp1;
     cin >> s;
-    ll len = s.length(); 
+    cout << longest_palindrome_manacher(s) << endl;
+    /*ll len = s.length(); 
     tmp1 = s;
     reverse(tmp1.begin(), tmp1.end());
     s = s + '#' + tmp1;
@@ -120,15 +152,15 @@ int main() {
     vector<ll> suf_arr = build_suffix_array(s, new_len);
     vector<ll> lcp_arr = calculate_lcp(s, suf_arr);
 
-    /*cout << "Suffix Array: ";
+    cout << "Suffix Array: ";
     for(i = 0; i < suf_arr.size(); i++) 
         cout << suf_arr[i] << " ";
     cout << "\nLCP Array: ";
     for(i = 0; i < lcp_arr.size(); i++)
         cout << lcp_arr[i] << " ";
-    cout << endl;*/
+    cout << endl;
 
     s = palindrome(suf_arr, lcp_arr, len, new_len, s);
-    cout << s << endl;
+    cout << s << endl;*/
     return 0;
 }
