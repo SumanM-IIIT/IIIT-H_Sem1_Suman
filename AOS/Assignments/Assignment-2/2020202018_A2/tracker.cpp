@@ -459,7 +459,7 @@ int main(int argc, char** argv) {
 		clientCount++;
 	}
 
-	for(int i = 0 ; i < clientCount ; i++)
+	for(int i = 0; i < clientCount; i++)
 		pthread_join(my_thread[i],NULL);
 	return 0;
 }

@@ -57,7 +57,7 @@ void * receive(void * sockID) {
 
 int main(int argc, char** argv) {
 	char *ip = argv[1];
-	int port = stoi(argv[2]);
+	int exit_flag = 0, port = stoi(argv[2]);
 	fstream f_in;
 	f_in.open(argv[3]);
 	string tr;
@@ -221,6 +221,7 @@ int main(int argc, char** argv) {
 			data[read] = '\0';
 			string d(data);
 			cout << d << " & Peer exiting..." << endl;
+			exit_flag = 1;
 			break;
 		}
 		else {
@@ -229,5 +230,8 @@ int main(int argc, char** argv) {
 		}
 	}
 	//pthread_join(thread, NULL);
+	/*if(exit_flag == 1) {
+		pthread_exit();
+	}*/
 	return 0;
 }

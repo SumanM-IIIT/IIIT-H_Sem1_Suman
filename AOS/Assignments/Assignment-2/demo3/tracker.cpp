@@ -319,7 +319,7 @@ void* listener(void* server_args) {
 
 		pthread_t t_new;
 		if(pthread_create(&t_new, NULL, file_opr, (void *)&sock_fd)) {
-			cout << "SOME ERROR !!" << endl;
+			cout << "THREAD CREATION ERROR in Listener() !!" << endl;
 			exit(1);
 		}
 		if(logout)
