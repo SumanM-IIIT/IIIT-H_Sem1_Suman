@@ -86,6 +86,7 @@ void print_all() {
 	clear();
 	struct stat meta;
 	int i;
+	//cout << "\033[1;33m" << curr_dir << endl;
 	for(i = first; i < last && i < dir_file_arr.size(); i++) {
 		lstat(dir_file_arr[i]->d_name, &meta);
 		char date[50];

@@ -85,7 +85,7 @@ int main() {
             break;
         }
     }
-    res = s2.substr(first ,len);
+    res = s2.substr(first, len);
     cout << res << endl;
 	return 0;
 }

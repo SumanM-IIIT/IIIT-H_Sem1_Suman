@@ -10,11 +10,74 @@
 #include <arpa/inet.h>
 #include <bits/stdc++.h>
 #include <iostream>
+#include <signal.h>
 using namespace std;
 
-void * receive(void * sockID) {
-	int clientSocket = *((int *) sockID);
-	while(1) {
+#define SIZE 1024
+
+int sig_val = 0;
+void sigintHandler(int sig_num) {
+	sig_val = 1;
+}
+void send_file(FILE *fp, int sockfd){
+  int n;
+  char data[SIZE] = {0};
+
+  while(fgets(data, SIZE, fp) != NULL) {
+    if (send(sockfd, data, sizeof(data), 0) == -1) {
+      perror("[-]Error in sending file.");
+      exit(1);
+    }
+    bzero(data, SIZE);
+  }
+}
+void write_file(int sockfd){
+  int n;
+  FILE *fp;
+  char *filename = "recv.txt";
+  char buffer[SIZE];
+
+  fp = fopen(filename, "w");
+  while (1) {
+    n = recv(sockfd, buffer, SIZE, 0);
+    if (n <= 0){
+      break;
+      return;
+    }
+    fprintf(fp, "%s", buffer);
+    bzero(buffer, SIZE);
+  }
+  return;
+}
+
+void *receive(void * arg) {
+	char **argv = (char **)arg;
+	char *ip = argv[1];
+	int port = 6000;
+	int clientSocket = socket(PF_INET, SOCK_STREAM, 0);
+	struct sockaddr_in serverAddr;
+
+	//port = stoi(tr_arr[1]);
+	//ip =tr_arr[0];
+	serverAddr.sin_family = AF_INET;
+	serverAddr.sin_port = htons(port);
+	serverAddr.sin_addr.s_addr = inet_addr(ip);
+	int flag = 0;
+	if(bind(clientSocket,(struct sockaddr *) &serverAddr , sizeof(serverAddr)) == -1) 
+		flag = 1;
+	if(listen(clientSocket,1024) == -1) 
+		flag = 1;
+	if(flag == 1) {
+		cout << "Peer-Server Connection failed !!" << endl;
+		return 0;
+	}
+	cout << "Peer is listenting on port " << port << "..." << endl;
+
+
+
+
+	//int clientSocket = *((int *) sockID);
+	/*while(1) {
 		char data[1024];
 		int read = recv(clientSocket,data,1024,0);
 		data[read] = '\0';
@@ -48,14 +111,12 @@ void * receive(void * sockID) {
 				send(stoi(cmd[3]),c.c_str(),1024,0);
 			}
 		}
-		/*if(strcmp(data, "yes") == 0) {
-			cout << "My clientSocket: " << clientSocket << endl;
-		}*/
-	}
-
+	}*/
+	return NULL;
 }
 
-int main(int argc, char** argv) {
+void *sending(void * arg) {
+	char **argv = (char **)arg;
 	char *ip = argv[1];
 	int exit_flag = 0, port = stoi(argv[2]);
 	fstream f_in;
@@ -85,11 +146,11 @@ int main(int argc, char** argv) {
 
 	cout << "Connection established...\n";
 
-	pthread_t thread;
-	pthread_create(&thread, NULL, receive, (void *) &clientSocket);
 
+	//int exit_flag = 0;
+	//int clientSocket = *(int *)sockID;
 	while(1) {
-
+		signal(SIGINT, sigintHandler);
 		//char input[1024];
 		//scanf("%s",input);
 		cout << "Enter Command: ";
@@ -110,25 +171,7 @@ int main(int argc, char** argv) {
 		}	
 		if(tmp != "")
 			cmd.push_back(tmp);
-		/*string inp, tmp = "";
-		vector<string> cmd;
-		getline(cin, inp);
-		for(int i = 0; inp[i] != '\0'; i++) {
-			if(inp[i] == ' ') {
-				if(tmp != "")
-					cmd.push_back(tmp);
-				tmp = "";
-				continue;
-			}
-			tmp += inp[i];
-		}
-
-		if(cmd[0] == "create_user") {
-			send(clientSocket, inp.c_str(), inp.length(), 0);
-		}
 		
-
-		else */
 		if(cmd[0] == "create_user") {
 			send(clientSocket,input.c_str(),1024,0);
 			int read = recv(clientSocket,data,2048,0);
@@ -213,15 +256,16 @@ int main(int argc, char** argv) {
 			string d(data);
 			cout << d;
 		}
-		else if(cmd[0] == "exit" || cmd[0] == "quit") {
+		else if(cmd[0] == "exit" || cmd[0] == "quit" || sig_val) {
 			//lose(clientSocket);
 			//cout << "Both Tracker & Peer are exiting..." << endl;
 			send(clientSocket,input.c_str(),1024,0);
 			int read = recv(clientSocket,data,2048,0);
 			data[read] = '\0';
 			string d(data);
-			cout << d << " & Peer exiting..." << endl;
+			cout << "Peer <" << d << "> exiting..." << endl;
 			exit_flag = 1;
+			//close(clientSocket);
 			break;
 		}
 		else {
@@ -229,9 +273,26 @@ int main(int argc, char** argv) {
 			continue;
 		}
 	}
+	sigintHandler(2);
+	return NULL;
+}
+
+int main(int argc, char** argv) {
+	
+	pthread_t thread1, thread2;
+	pthread_create(&thread2, NULL, sending, (void *) argv);
+	//pthread_create(&thread2, NULL, receive, (void *) argv);
+
+	
 	//pthread_join(thread, NULL);
 	/*if(exit_flag == 1) {
 		pthread_exit();
 	}*/
+	while(1) {
+		if(sig_val == 1) {
+			cout << "Bye\n";
+			break;
+		}
+	}
 	return 0;
 }
