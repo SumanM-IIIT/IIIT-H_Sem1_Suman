@@ -299,10 +299,16 @@ int main() {
 					else
 						cout << "False" << endl;
 					break;
-			case 4: cin >> key >> value;							//map[key]
+			case 4: cin >> key;
+					res = m.find_omap(key);							//map[key]
+					if(!res) {
+						cout << "KEY NOT FOUND !! Please enter a new value: ";
+						cin >> value;
+						m[key] = value;
+					}
 					//m[key] = value;
 					cout << m[key] << endl;
-					m[key] = value;
+					//m[key] = value;
 					break;
 			case 5: cout << m.size_omap() << endl;					//SIZE
 					break;

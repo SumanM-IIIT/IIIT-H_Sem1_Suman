@@ -13,7 +13,7 @@
 #include <fstream>
 using namespace std;
 
-int clientCount = 0;
+int clientCount = 0, tmpClientCount = 0;
 
 static pthread_mutex_t mutex = PTHREAD_MUTEX_INITIALIZER;
 static pthread_cond_t cond = PTHREAD_COND_INITIALIZER;
@@ -30,6 +30,7 @@ struct client {
 typedef struct file_info {
 	string filename;
 	string sha1;
+	vector<string> owners;
 } FileInfo;
 typedef struct group {
 	string owner, name;
@@ -41,7 +42,7 @@ typedef struct user {
 	string username = "", password = "";
 	bool is_login = true;
 	vector<string> group_part, own_group;
-	vector<FileInfo> usr_file_arr;
+	vector<FileInfo*> usr_file_arr;
 } User;
 
 struct client Client[1024];
@@ -97,6 +98,7 @@ void * doNetworking(void * ClientDetail) {
 			}
 			else 
 				msg += "Client-" + to_string(Client[index].index + 1) + ": GIVEN USER ALREADY PRESENT !!\n";
+			sleep(1);
 			send(Client[index].sockID, msg.c_str(), 2048, 0);
 		}
 		if(cmd[0] == "login") {
@@ -119,6 +121,7 @@ void * doNetworking(void * ClientDetail) {
 			}
 			if(flag == 0)
 				msg += "Client-" + to_string(Client[index].index + 1) + ": INVALID USERNAME/PASSWORD...\n";
+			sleep(1);
 			send(Client[index].sockID, msg.c_str(), 2048, 0);
 		}
 		if(cmd[0] == "logout") {
@@ -141,6 +144,7 @@ void * doNetworking(void * ClientDetail) {
 			}
 			if(flag == 0)
 				msg += "No User was LOGGED IN...\n";
+			sleep(1);
 			send(Client[index].sockID, msg.c_str(), 2048, 0);
 		}
 		if(cmd[0] == "create_group") {
@@ -172,6 +176,7 @@ void * doNetworking(void * ClientDetail) {
 			} 
 			else 
 				msg += "Client-" + to_string(Client[index].index + 1) + ": NO USER LOGGED IN currently to create a group...\n";
+			sleep(1);
 			send(Client[index].sockID, msg.c_str(), 2048, 0);
 		}
 		if(cmd[0] == "fetch_groups") {
@@ -202,6 +207,7 @@ void * doNetworking(void * ClientDetail) {
 			}
 			if(flag == 0)
 				msg += "LOGIN first to see all the groups...\n";
+			sleep(1);
 			send(Client[index].sockID, msg.c_str(), 2048, 0);
 		}
 		if(cmd[0] == "upload_file") {
@@ -215,15 +221,29 @@ void * doNetworking(void * ClientDetail) {
 						msg += "CAN'T OPEN THE FILE: " + cmd[1] + " !!\n"; 
 					}
 					else {
-						FileInfo fi;
-						fi.filename = cmd[1];
-						fi.sha1 = "hello";
-						usr[i]->usr_file_arr.push_back(fi);
-						files_arr.push_back(&fi);
+						int flag_fu = 0;
+						for(int k = 0; k < files_arr.size(); k++) {
+							if(files_arr[k]->filename == cmd[1]) {
+								files_arr[k]->owners.push_back(usr[i]->username);
+								flag_fu = 1;
+								break;
+							}
+						}
+						if(flag_fu == 0) {
+							FileInfo *fi;
+							fi = (FileInfo *)malloc(sizeof(FileInfo));
+							fi->filename = cmd[1];
+							fi->sha1 = "hello";
+							fi->owners.push_back(usr[i]->username);
+							usr[i]->usr_file_arr.push_back(fi);
+							files_arr.push_back(fi);
+							//cout << "File: " << fi.filename << endl;
+						}
 						msg += "File Uploaded successfully..\n";
 					}
 					flag = 1;
 					f_in.close();
+					sleep(1);
 					break;
 				}
 			}
@@ -264,23 +284,32 @@ void * doNetworking(void * ClientDetail) {
 		}
 		if(cmd[0] == "show_files") {
 			string msg = "";
-			int flag = 0;
-			for(int i = 0; i < usr.size(); i++) {
-				if(Client[index].username == usr[i]->username) {
-					for(int i = 0; i < files_arr.size(); i++) {
-						msg += to_string(i + 1) + ". " + files_arr[i]->filename + "\n";
+			//int flag = 0;
+			//for(int i = 0; i < usr.size(); i++) {
+			//	if(Client[index].username == usr[i]->username) {
+					for(int j = 0; j < files_arr.size(); j++) {
+						msg += to_string(j + 1) + ". " + files_arr[j]->filename + "\tOwners: ";
+						for(int k = 0; k < files_arr[j]->owners.size(); k++) {
+							msg += " " + files_arr[j]->owners[k];
+						}
+						msg += "\n";
 					}
-					flag = 1;
-					break;
-				}
-			}
-			if(flag == 0)
-				msg += "LOGIN first to view files...\n";
+			//		flag = 1;
+			//		break;
+			//	}
+			//}
+			//if(flag == 0)
+			//	msg += "LOGIN first to view files...\n";
 			send(Client[index].sockID, msg.c_str(), 2048, 0);
 		}
 		if(cmd[0] == "exit" || cmd[0] == "quit") {
-			string msg = "Tracker exiting...";
+			string msg = Client[index].username;
+			int val = 100;
 			send(Client[index].sockID, msg.c_str(), 2048, 0);
+			cout << "Client-" << index + 1 << ": <" << Client[index].username << "> exiting...\n";
+			pthread_exit(&val);
+			sleep(1);
+			return NULL;
 		}
 		if(cmd[0] == "yes") {
 			cout << "Server Side YES::::\n";
@@ -372,6 +401,11 @@ void * doNetworking(void * ClientDetail) {
 		if(cmd[0] == "accept_group_join") {
 			
 		}*/
+		//cout << "Sleeping for 1 sec..\nFiles_arrSize: " << files_arr.size() << endl;
+		sleep(1);
+		/*for(int i = 0; i < files_arr.size(); i++) {
+			cout << files_arr[i]->filename << endl;
+		}*/
 
 	}
 	return NULL;
@@ -457,6 +491,7 @@ int main(int argc, char** argv) {
 
 		pthread_create(&my_thread[clientCount], NULL, doNetworking, (void *) &Client[clientCount]);
 		clientCount++;
+		tmpClientCount++;
 	}
 
 	for(int i = 0; i < clientCount; i++)
